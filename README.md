@@ -167,3 +167,13 @@ Made with 🏁 by motorsport data enthusiasts.
 **Enjoy analysing F1 telemetry!**
 
 </div>
+
+
+```
+       0=[_]=0
+         /T\
+        |(o)|
+      []=\_/=[]
+        __V__
+       '-----'Iz/F1
+```
