@@ -11,6 +11,8 @@ fastf1.Cache.enable_cache('cache')
 #FP1 = Practice Session 1 
 #FP2 = Practice Session 2
 #FP3 = Practice Session 3
+#Qualifying = Q
+#Main Race = R
 
 
 #==========================================Code nome of track=========================================
@@ -108,7 +110,7 @@ print("=" * 60)
 
 # --- Track map formatting ---
 ax.set_aspect('equal')
-ax.set_title("All Drivers' Fastest Laps - 2026 Austrian GP FP1",
+ax.set_title("All Drivers' Fastest Laps - 2026 Austrian GP ",
              fontsize=14, fontweight='bold')
 ax.axis('off')
 
