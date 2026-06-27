@@ -85,7 +85,7 @@ plt.show()
 
 **Interactive demo** (click to play):  
 ![Demo GIF](docs/demo.gif)  
-*Visualising Verstappen vs Hamilton sector times at Silverstone*
+*scuderia ferrari*
 
 ---
 
