@@ -130,17 +130,21 @@ features = engineer_lap_features(session, drivers=['VER', 'HAM'])
 ## Project Structure
 
 ```
-F1-terminal_X/
-├── data/                              ← sample telemetry CSVs
-├── F1_Main_py/                        ← main package
-│   ├── driver.py                      ← driver telimentry
-│   ├── Practic-Session.py             ← Practices Session 
-|   |── Schedule & Driver.py           ← Schedule Info and Driver Info Store
-│   └── f1.py                          ← feature engineering for ML
-├── examples/                          ← Jupyter notebooks & scripts
-├── requirements.txt
-├── USERS.md
-└── README.md
+    Project Structure
+    
+    formula1_test/
+    ├── .github/                    # GitHub templates (PR template, issues, contributing, code of conduct)
+    ├── Aspects/                    # Documentation
+    │   ├── fastf1_reference.md     # FastF1 session codes & track names cheat sheet
+    │   └── USERS.md                # Contributors list
+    ├── cache/                      # FastF1 cache (Austrian GP 2026 race data cached)
+    ├── docs/                       # Demo GIF
+    ├── example/                    # Empty example folder
+    ├── F1_Main_py/                 # Main Python package (4 modules)
+    ├── requirements.txt            # Python dependencies
+    ├── README.md                   # Project documentation
+    ├── License                     # MIT License
+    └── .gitignore
 ```
 
 ---
