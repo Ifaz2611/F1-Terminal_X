@@ -10,18 +10,15 @@ from __future__ import annotations
 
 import sys
 import warnings
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List, Dict, Tuple
+from typing import List, Optional, Tuple
 
 import fastf1
 import fastf1.plotting
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import numpy as np
+import pandas as pd
 from matplotlib.collections import LineCollection
-import seaborn as sns
 
 # Optional: questionary for interactive CLI (falls back to built-in input)
 try:
@@ -178,7 +175,7 @@ def get_fastest_lap_telemetry(
     driver_code: str,
     driver_name: str,
 ) -> Optional[pd.DataFrame]:
-    
+
     """
     Fetch fastest lap telemetry using fastf1's built-in get_telemetry().
     This is the CORRECT approach — it handles interpolation, merging,

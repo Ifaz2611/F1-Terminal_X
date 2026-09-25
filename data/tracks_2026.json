@@ -1,0 +1,156 @@
+{
+  "1": {
+    "round_num": 1,
+    "country": "Australia",
+    "city": "Melbourne",
+    "name": "Albert Park",
+    "fastf1_name": "Australia"
+  },
+  "2": {
+    "round_num": 2,
+    "country": "China",
+    "city": "Shanghai",
+    "name": "Shanghai International Circuit",
+    "fastf1_name": "China"
+  },
+  "3": {
+    "round_num": 3,
+    "country": "Japan",
+    "city": "Suzuka",
+    "name": "Suzuka",
+    "fastf1_name": "Japan"
+  },
+  "4": {
+    "round_num": 4,
+    "country": "USA",
+    "city": "Miami",
+    "name": "Miami International Autodrome",
+    "fastf1_name": "Miami"
+  },
+  "5": {
+    "round_num": 5,
+    "country": "Canada",
+    "city": "Montreal",
+    "name": "Circuit Gilles Villeneuve",
+    "fastf1_name": "Canada"
+  },
+  "6": {
+    "round_num": 6,
+    "country": "Monaco",
+    "city": "Monaco",
+    "name": "Monaco",
+    "fastf1_name": "Monaco"
+  },
+  "7": {
+    "round_num": 7,
+    "country": "Spain",
+    "city": "Barcelona",
+    "name": "Circuit de Catalunya",
+    "fastf1_name": "Spain"
+  },
+  "8": {
+    "round_num": 8,
+    "country": "Austria",
+    "city": "Spielberg",
+    "name": "Red Bull Ring",
+    "fastf1_name": "Austria"
+  },
+  "9": {
+    "round_num": 9,
+    "country": "Great Britain",
+    "city": "Silverstone",
+    "name": "Silverstone",
+    "fastf1_name": "Great Britain"
+  },
+  "10": {
+    "round_num": 10,
+    "country": "Belgium",
+    "city": "Spa-Francorchamps",
+    "name": "Spa-Francorchamps",
+    "fastf1_name": "Belgium"
+  },
+  "11": {
+    "round_num": 11,
+    "country": "Hungary",
+    "city": "Budapest",
+    "name": "Hungaroring",
+    "fastf1_name": "Hungary"
+  },
+  "12": {
+    "round_num": 12,
+    "country": "Netherlands",
+    "city": "Zandvoort",
+    "name": "Zandvoort",
+    "fastf1_name": "Netherlands"
+  },
+  "13": {
+    "round_num": 13,
+    "country": "Italy",
+    "city": "Monza",
+    "name": "Monza",
+    "fastf1_name": "Italy"
+  },
+  "14": {
+    "round_num": 14,
+    "country": "Spain",
+    "city": "Madrid",
+    "name": "Madring",
+    "fastf1_name": "Madrid"
+  },
+  "15": {
+    "round_num": 15,
+    "country": "Azerbaijan",
+    "city": "Baku",
+    "name": "Baku City Circuit",
+    "fastf1_name": "Azerbaijan"
+  },
+  "16": {
+    "round_num": 16,
+    "country": "Singapore",
+    "city": "Singapore",
+    "name": "Singapore",
+    "fastf1_name": "Singapore"
+  },
+  "17": {
+    "round_num": 17,
+    "country": "USA",
+    "city": "Austin",
+    "name": "Circuit of the Americas",
+    "fastf1_name": "United States"
+  },
+  "18": {
+    "round_num": 18,
+    "country": "Mexico",
+    "city": "Mexico City",
+    "name": "Mexico City",
+    "fastf1_name": "Mexico"
+  },
+  "19": {
+    "round_num": 19,
+    "country": "Brazil",
+    "city": "S\u00e3o Paulo",
+    "name": "Interlagos",
+    "fastf1_name": "Brazil"
+  },
+  "20": {
+    "round_num": 20,
+    "country": "USA",
+    "city": "Las Vegas",
+    "name": "Las Vegas Strip Circuit",
+    "fastf1_name": "Las Vegas"
+  },
+  "21": {
+    "round_num": 21,
+    "country": "Qatar",
+    "city": "Lusail",
+    "name": "Lusail",
+    "fastf1_name": "Qatar"
+  },
+  "22": {
+    "round_num": 22,
+    "country": "Abu Dhabi",
+    "city": "Yas Marina",
+    "name": "Yas Marina",
+    "fastf1_name": "Abu Dhabi"
+  }
+}

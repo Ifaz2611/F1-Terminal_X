@@ -12,10 +12,10 @@ from pathlib import Path
 
 import fastf1
 import fastf1.plotting
-import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
 import numpy as np
+import pandas as pd
+from matplotlib.collections import LineCollection
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 warnings.filterwarnings('ignore', category=UserWarning)

@@ -5,6 +5,7 @@ Fixes duplicate-country ambiguity (USA x3, Spain x2) by using unique fastf1_name
 from dataclasses import dataclass
 from typing import Dict
 
+
 @dataclass(frozen=True)
 class Track:
     round_num: int
@@ -27,7 +28,7 @@ TRACKS: Dict[int, Track] = {
     11: Track(11, "Hungary",       "Budapest",        "Hungaroring",                     "Hungary"),
     12: Track(12, "Netherlands",   "Zandvoort",       "Zandvoort",                       "Netherlands"),
     13: Track(13, "Italy",         "Monza",           "Monza",                           "Italy"),
-    14: Track(14, "Spain",         "Madrid",          "Madring",                         "Spain"),  # FastF1 uses 'Spain' for Barcelona; fallback handled via EventName
+    14: Track(14, "Spain",         "Madrid",          "Madring",                         "Madrid"),
     15: Track(15, "Azerbaijan",    "Baku",            "Baku City Circuit",               "Azerbaijan"),
     16: Track(16, "Singapore",     "Singapore",       "Singapore",                       "Singapore"),
     17: Track(17, "USA",           "Austin",          "Circuit of the Americas",         "United States"),

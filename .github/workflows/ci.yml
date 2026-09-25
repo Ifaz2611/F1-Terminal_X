@@ -1,0 +1,22 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt && pip install pytest ruff mypy
+      - name: Compile check
+        run: python -m py_compile F1_Main_py/f1.py F1_Main_py/driver.py f1_terminal/*.py f1_terminal/core/*.py
+      - name: Ruff
+        run: ruff check .
+      - name: Mypy
+        run: mypy f1_terminal/core --ignore-missing-imports --allow-untyped-decorators
+      - name: Pytest
+        run: pytest -q

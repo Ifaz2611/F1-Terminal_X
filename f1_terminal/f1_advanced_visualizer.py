@@ -10,18 +10,15 @@ interactive plotting, sector comparisons, and race strategy overlays.
 import sys
 import warnings
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Tuple, Callable
 from pathlib import Path
-from datetime import timedelta
+from typing import Dict, List, Optional, Tuple
 
 import fastf1
 import fastf1.plotting
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import numpy as np
+import pandas as pd
 from matplotlib.collections import LineCollection
-import seaborn as sns
 
 # ── Suppress non-critical warnings ─────────────────────────────────────────
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -36,10 +33,10 @@ FIGURE_DPI = 150
 # ── Track Database (canonical) ───────────────────────────────────────────
 # Use canonical tracks.py; fallback to inline if import fails (e.g. run as isolated script)
 try:
-    from f1_terminal.tracks import Track, TRACKS  # type: ignore
+    from f1_terminal.tracks import TRACKS, Track  # type: ignore
 except ImportError:
     try:
-        from tracks import Track, TRACKS  # type: ignore
+        from tracks import TRACKS, Track  # type: ignore
     except ImportError:
         @dataclass(frozen=True)
         class Track:  # type: ignore[no-redef]
@@ -197,7 +194,7 @@ class TrackVisualizer:
                 return None
 
             return fastest, telemetry
-        except Exception as e:
+        except Exception:
             return None
 
     def _print_driver_summary(self) -> List[Tuple[str, pd.Series, pd.DataFrame, str]]:
@@ -481,7 +478,6 @@ def display_track_menu() -> None:
     print("  🏁  SELECT A GRAND PRIX")
     print("═" * 70)
     for num, track in TRACKS.items():
-        flag = "🌏"
         print(f"  {num:>2}. {track.country:<18} {track.city:<18} {track.name}")
     print("═" * 70)
 
@@ -543,7 +539,7 @@ def main() -> None:
         print("\nNo lap data available for this session.")
         sys.exit(1)
 
-    print(f"\nLoaded successfully!")
+    print("\nLoaded successfully!")
     print(f"   Total laps recorded: {len(laps)}")
     print(f"   Drivers: {len(laps['Driver'].unique())}")
 
