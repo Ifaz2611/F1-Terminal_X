@@ -216,7 +216,7 @@ F1-Terminal_X/
 
 ### 1.1 Create `f1_terminal/core/`
 
-- [ ] **P1-1 `core/errors.py`**
+- [x] **P1-1 `core/errors.py`**
   ```python
   class F1DataError(Exception): ...
   class SessionNotHeldError(F1DataError): ...
@@ -225,40 +225,40 @@ F1-Terminal_X/
   ```
   Uniform error UX, exit codes `0=ok, 1=data error, 2=usage error`.
 
-- [ ] **P1-2 `core/session.py`**
-  - [ ] `get_schedule(year: int) -> DataFrame` (cached, handles 2026 incomplete schedule)
-  - [ ] `load_session(year, track: str|Track, session_code: str, *, telemetry=True) -> SessionWrapper` with retry (3x, backoff), `DataNotLoadedError` → `SessionNotHeldError` with friendly msg.
-  - [ ] `SessionWrapper` dataclass: `session`, `laps`, `drivers`, `year`, `track`, `session_code`; method `get_driver_laps(code)` (handles `pick_drivers`/`pick_driver` fallback — extract from `F1_Main_py/driver.py:148`).
-  - [ ] Offline fallback: if `cache/` has data, load from cache even without network.
+- [x] **P1-2 `core/session.py`**
+  - [x] `get_schedule(year: int) -> DataFrame` (cached, handles 2026 incomplete schedule)
+  - [x] `load_session(year, track: str|Track, session_code: str, *, telemetry=True) -> SessionWrapper` with retry (3x, backoff), `DataNotLoadedError` → `SessionNotHeldError` with friendly msg.
+  - [x] `SessionWrapper` dataclass: `session`, `laps`, `drivers`, `year`, `track`, `session_code`; method `get_driver_laps(code)` (handles `pick_drivers`/`pick_driver` fallback — extract from `F1_Main_py/driver.py:148`).
+  - [x] Offline fallback: if `cache/` has data, load from cache even without network.
 
-- [ ] **P1-3 `core/telemetry.py`**
-  - [ ] `get_fastest_lap(session, driver_code) -> Series` + `get_telemetry(fastest_lap) -> DataFrame` (wraps `fastest_lap.get_telemetry()` + `add_distance()`).
-  - [ ] `get_driver_telemetry(session, driver_code) -> tuple[Series, DataFrame]` (combines above, raises `TelemetryNotAvailableError`).
-  - [ ] Unit tests with mocked laps.
+- [x] **P1-3 `core/telemetry.py`**
+  - [x] `get_fastest_lap(session, driver_code) -> Series` + `get_telemetry(fastest_lap) -> DataFrame` (wraps `fastest_lap.get_telemetry()` + `add_distance()`).
+  - [x] `get_driver_telemetry(session, driver_code) -> tuple[Series, DataFrame]` (combines above, raises `TelemetryNotAvailableError`).
+  - [x] Unit tests with mocked laps.
 
-- [ ] **P1-4 `core/colors.py`**
-  - [ ] `get_team_color(session, driver_code, fallback_cmap, idx, total) -> str` (hex) — consolidate from `f1_advanced_visualizer.py:101` and `f1_qualifying.py:108`.
+- [x] **P1-4 `core/colors.py`**
+  - [x] `get_team_color(session, driver_code, fallback_cmap, idx, total) -> str` (hex) — consolidate from `f1_advanced_visualizer.py:101` and `f1_qualifying.py:108`.
 
-- [ ] **P1-5 `core/plotting.py`** — **pure functions**, `ax` injected, return `Figure`
-  - [ ] `plot_track_map(ax, telemetry, color, cmap='viridis') -> None` (LineCollection + colorbar)
-  - [ ] `plot_speed_trace(ax, telemetry, color, show_drs=True, show_gear_shifts=True)`
-  - [ ] `plot_throttle_brake(ax, telemetry)`
-  - [ ] `plot_gear_map(ax, telemetry)`
-  - [ ] `plot_sector_bars(ax, sector_df)` (from `f1_advanced_visualizer.py:337`)
-  - [ ] `plot_race_pace(ax, laps, drivers, colors)`
-  - [ ] `plot_tire_strategy(ax, laps, drivers)` (from `F1_Main_py/driver.py:114`)
-  - [ ] All functions handle `NaN`, empty DataFrames gracefully (return early, log warning).
+- [x] **P1-5 `core/plotting.py`** — **pure functions**, `ax` injected, return `Figure`
+  - [x] `plot_track_map(ax, telemetry, color, cmap='viridis') -> None` (LineCollection + colorbar)
+  - [x] `plot_speed_trace(ax, telemetry, color, show_drs=True, show_gear_shifts=True)`
+  - [x] `plot_throttle_brake(ax, telemetry)`
+  - [x] `plot_gear_map(ax, telemetry)`
+  - [x] `plot_sector_bars(ax, sector_df)` (from `f1_advanced_visualizer.py:337`)
+  - [x] `plot_race_pace(ax, laps, drivers, colors)`
+  - [x] `plot_tire_strategy(ax, laps, drivers)` (from `F1_Main_py/driver.py:114`)
+  - [x] All functions handle `NaN`, empty DataFrames gracefully (return early, log warning).
 
-- [ ] **P1-6 `core/io.py` + `core/transforms.py`**
-  - [ ] `io.load_session_data(year, track, session, source='fastf1'|'csv'|'parquet', path=None) -> DataFrame` (satisfies `README.md:61`).
-  - [ ] `transforms.prepare_telemetry_trace(session, driver, lap) -> DataFrame` (satisfies `README.md:111` plotly example).
-  - [ ] `transforms.engineer_lap_features(session, drivers) -> DataFrame` (corner speeds, braking points — stub + TODO for ML).
+- [x] **P1-6 `core/io.py` + `core/transforms.py`**
+  - [x] `io.load_session_data(year, track, session, source='fastf1'|'csv'|'parquet', path=None) -> DataFrame` (satisfies `README.md:61`).
+  - [x] `transforms.prepare_telemetry_trace(session, driver, lap) -> DataFrame` (satisfies `README.md:111` plotly example).
+  - [x] `transforms.engineer_lap_features(session, drivers) -> DataFrame` (corner speeds, braking points — stub + TODO for ML).
 
-- [ ] **P1-7 `core/__init__.py` re-exports** for `from f1_terminal.core import load_session, get_telemetry, TRACKS`.
+- [x] **P1-7 `core/__init__.py` re-exports** for `from f1_terminal.core import load_session, get_telemetry, TRACKS`.
 
 ### 1.2 Refactor Scripts to Use Core
 
-- [ ] **P1-8 Refactor each entry point** to thin CLI wrappers:
+- [x] **P1-8 Refactor each entry point** to thin CLI wrappers:
   ```python
   # f1_terminal/f1_advanced_visualizer.py
   def main(argv=None):
@@ -274,7 +274,7 @@ F1-Terminal_X/
 
 ### 1.3 CLI (Typer)
 
-- [ ] **P1-9 `f1_terminal/cli/main.py`** — `typer` app
+- [x] **P1-9 `f1_terminal/cli/main.py`** — `typer` app
   ```bash
   f1 --help
   f1 advanced --year 2024 --track Austria --session R --analysis all --save out.png --no-show
@@ -285,10 +285,10 @@ F1-Terminal_X/
   f1 driver --year 2026 --round 1
   f1 --interactive   # launches questionary flow (old behavior)
   ```
-  - [ ] Shell completion: `f1 --install-completion`.
-  - [ ] Keep `questionary` for `f1 --interactive` fallback; `typer` for scripting.
+  - [x] Shell completion: `f1 --install-completion`.
+  - [x] Keep `questionary` for `f1 --interactive` fallback; `typer` for scripting.
 
-- [ ] **P1-10 `python -m f1_terminal`** entry (`f1_terminal/__main__.py`).
+- [x] **P1-10 `python -m f1_terminal`** entry (`f1_terminal/__main__.py`).
 
 **Exit Criteria:** `f1 advanced --help` works, `pytest tests/test_plotting.py` passes with `Agg` backend, no script calls `input()` when imported, `F1_Main_py/` files are 30-line shims.
 

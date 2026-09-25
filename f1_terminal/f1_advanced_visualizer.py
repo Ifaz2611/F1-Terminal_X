@@ -7,6 +7,7 @@ interactive plotting, sector comparisons, and race strategy overlays.
 
 
 """
+import argparse
 import sys
 import warnings
 from dataclasses import dataclass
@@ -20,15 +21,38 @@ import numpy as np
 import pandas as pd
 from matplotlib.collections import LineCollection
 
+try:
+    from f1_terminal.config import FIGURE_DPI as _CORE_DPI
+    from f1_terminal.config import get_logger as _get_logger
+    from f1_terminal.core.colors import get_team_color as _core_get_team_color
+    from f1_terminal.core.session import load_session as _core_load_session
+
+    _HAS_CORE = True
+    _logger = _get_logger(__name__)
+except Exception:
+    _HAS_CORE = False
+    _CORE_DPI = 150
+    _logger = None
+
 # ── Suppress non-critical warnings ─────────────────────────────────────────
 warnings.filterwarnings('ignore', category=FutureWarning)
 warnings.filterwarnings('ignore', category=UserWarning)
 
 # ── Configuration ──────────────────────────────────────────────────────────
-# Unified cache dir (project_root/cache) so all scripts share cache
-CACHE_DIR = (Path(__file__).parent.parent / 'cache').resolve()
-MIN_YEAR, MAX_YEAR = 2018, 2030
-FIGURE_DPI = 150
+# Unified cache dir (project_root/cache) so all scripts share cache — now via config
+try:
+    from f1_terminal.config import CACHE_DIR as _CFG_CACHE_DIR
+    from f1_terminal.config import FIGURE_DPI as _CFG_DPI
+    from f1_terminal.config import MAX_YEAR as _CFG_MAX
+    from f1_terminal.config import MIN_YEAR as _CFG_MIN
+
+    CACHE_DIR = _CFG_CACHE_DIR
+    FIGURE_DPI = _CFG_DPI
+    MIN_YEAR, MAX_YEAR = _CFG_MIN, _CFG_MAX
+except Exception:
+    CACHE_DIR = (Path(__file__).parent.parent / 'cache').resolve()
+    MIN_YEAR, MAX_YEAR = 2018, 2030
+    FIGURE_DPI = _CORE_DPI if '_CORE_DPI' in dir() else 150
 
 # ── Track Database (canonical) ───────────────────────────────────────────
 # Use canonical tracks.py; fallback to inline if import fails (e.g. run as isolated script)
@@ -104,7 +128,12 @@ def _fmt_laptime_seconds(td: Optional[pd.Timedelta]) -> float:
 
 
 def _get_team_color(session, driver_code: str, fallback_cmap, idx: int, total: int) -> str:
-    """Safely extract team color from session driver info. Always returns hex string."""
+    """Safely extract team color — delegates to core.colors.get_team_color."""
+    if _HAS_CORE:
+        try:
+            return _core_get_team_color(session, driver_code, fallback_cmap, idx, total)
+        except Exception:
+            pass
     try:
         driver_info = session.get_driver(driver_code)
         # handle both dict/Series and attribute access
@@ -504,76 +533,251 @@ def display_analysis_menu() -> int:
     return _input_int("\nSelect analysis (0-5): ", 0, 5)
 
 
-# ── Main Program ───────────────────────────────────────────────────────────
-def main() -> None:
-    """Main entry point with full error handling."""
-    print("\n" + "═" * 70)
-    print("  🏎️  F1 RACE SESSION ADVANCED VISUALIZER")
-    print("  Powered by FastF1  |  Telemetry & Strategy Analysis")
-    print("═" * 70)
+# ── Argparse (thin CLI wrapper) ───────────────────────────────────────────
+def _parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="F1 Advanced Visualizer (core-powered)")
+    parser.add_argument("--year", type=int, default=None, help="Season year (2018-2030)")
+    parser.add_argument("--track", type=str, default=None, help="Track name/fastf1 identifier or round number")
+    parser.add_argument("--session", type=str, default="R", help="Session code (R/Q/FP1...) default R")
+    parser.add_argument("--analysis", type=str, default=None, help="track/speed/sector/pace/all")
+    parser.add_argument("--save", type=str, default=None, help="Save figure path")
+    parser.add_argument("--no-show", action="store_true", help="Do not display figure")
+    parser.add_argument("--verbose", action="store_true", help="Verbose logging")
+    return parser.parse_args(argv)
 
-    # Setup cache
+
+def _run_with_args(args) -> None:
+    """Run non-interactive mode using core.session."""
+    if _logger and args.verbose:
+        _logger.info("Running advanced with args %s", args)
     _setup_cache()
 
-    # Get inputs
-    year = _input_year()
-    track = get_track_selection()
+    # Resolve track
+    track_arg = args.track
+    if track_arg is None:
+        raise SystemExit("Missing --track (use 1-22, name, or fastf1 identifier)")
 
-    print(f"\nLoading: {year} {track.country} GP — Race Session")
-    print("   This may take a moment (downloading timing & telemetry data)...")
+    # Resolve year
+    year = args.year
+    if year is None:
+        try:
+            from f1_terminal.config import settings as _s
+            year = _s.default_season
+        except Exception:
+            year = 2024
 
-    # Load session with error handling
-    try:
-        session = fastf1.get_session(year, track.fastf1_name, 'R')
-        session.load(telemetry=True, laps=True, weather=False)
-    except fastf1.core.DataNotLoadedError as e:
-        print(f"\nFailed to load session data: {e}")
-        print("   This may happen if the session hasn't occurred yet or data is unavailable.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\nUnexpected error loading session: {e}")
-        sys.exit(1)
+    # Load session via core (or fallback)
+    session_obj = None
+    wrapper = None
+    if _HAS_CORE:
+        try:
+            wrapper = _core_load_session(year, track_arg, args.session)
+            session_obj = wrapper.session
+            # Build Track object for title if possible
+            from f1_terminal.tracks import TRACKS as _TRACKS
 
-    laps = session.laps
-    if laps is None or laps.empty:
-        print("\nNo lap data available for this session.")
-        sys.exit(1)
+            track = None
+            # try int
+            try:
+                track = _TRACKS[int(track_arg)]
+            except Exception:
+                # search by fastf1_name
+                for t in _TRACKS.values():
+                    if t.fastf1_name.lower() == track_arg.lower() or t.country.lower() == track_arg.lower():
+                        track = t
+                        break
+                if track is None:
+                    # dummy Track
+                    from dataclasses import dataclass as _dc
 
-    print("\nLoaded successfully!")
-    print(f"   Total laps recorded: {len(laps)}")
-    print(f"   Drivers: {len(laps['Driver'].unique())}")
+                    @dataclass(frozen=True)
+                    class _Tmp:
+                        round_num: int = 1
+                        country: str = track_arg
+                        city: str = track_arg
+                        name: str = track_arg
+                        fastf1_name: str = track_arg
 
-    # Initialize visualizer
-    viz = TrackVisualizer(session, year, track)
+                    track = _Tmp()  # type: ignore
+            viz = TrackVisualizer(session_obj, year, track)  # type: ignore[arg-type]
+        except SystemExit:
+            raise
+        except Exception as e:
+            print(f"Failed to load session {year} {track_arg} {args.session}: {e}")
+            sys.exit(1)
+    else:
+        # Fallback old path
+        from f1_terminal.tracks import TRACKS as _TRACKS
 
-    # Analysis loop
-    while True:
-        choice = display_analysis_menu()
-        if choice == 0:
-            print("\nGoodbye! Data Scientist 🏎 ️")
-            break
-        elif choice == 1:
-            viz.plot_fastest_laps_track()
-        elif choice == 2:
-            print("\nAvailable drivers:", ", ".join(viz.all_drivers))
-            drv_input = input("Enter driver codes (comma-separated, or 'all'): ").strip().upper()
-            if drv_input == 'ALL':
-                viz.plot_speed_comparison(viz.all_drivers)
-            else:
-                selected = [d.strip() for d in drv_input.split(",") if d.strip() in viz.all_drivers]
-                if selected:
-                    viz.plot_speed_comparison(selected)
+        track = None
+        try:
+            track = _TRACKS[int(track_arg)]
+        except Exception:
+            for t in _TRACKS.values():
+                if t.fastf1_name.lower() == track_arg.lower():
+                    track = t
+                    break
+            if track is None:
+                print(f"Unknown track {track_arg}")
+                sys.exit(2)
+        try:
+            session_obj = fastf1.get_session(year, track.fastf1_name, args.session)
+            session_obj.load(telemetry=True, laps=True, weather=False)
+            viz = TrackVisualizer(session_obj, year, track)
+        except Exception as e:
+            print(f"Failed to load session: {e}")
+            sys.exit(1)
+
+    # Analysis routing — uses TrackVisualizer methods (pure plotting via core where available)
+    # Map friendly values
+    analysis = (args.analysis or "all").lower()
+    import matplotlib.pyplot as plt
+
+    if args.save:
+        # viz methods call plt.show internally; we intercept save by monkey? Simpler: handle track case explicitly
+        # For now call viz methods and if save provided, save current figure
+        pass
+
+    if analysis == "track":
+        viz.plot_fastest_laps_track()
+        if args.save:
+            try:
+                plt.gcf().savefig(args.save, dpi=FIGURE_DPI, bbox_inches="tight")
+                print(f"Saved to {args.save}")
+            except Exception as e:
+                print(f"Save failed: {e}")
+    elif analysis == "speed":
+        viz.plot_speed_comparison()
+        if args.save:
+            try:
+                plt.gcf().savefig(args.save, dpi=FIGURE_DPI, bbox_inches="tight")
+                print(f"Saved to {args.save}")
+            except Exception as e:
+                print(f"Save failed: {e}")
+    elif analysis in ("sector", "sectors"):
+        viz.plot_sector_analysis()
+        if args.save:
+            try:
+                plt.gcf().savefig(args.save, dpi=FIGURE_DPI, bbox_inches="tight")
+                print(f"Saved to {args.save}")
+            except Exception as e:
+                print(f"Save failed: {e}")
+    elif analysis == "pace":
+        viz.plot_race_pace()
+        if args.save:
+            try:
+                plt.gcf().savefig(args.save, dpi=FIGURE_DPI, bbox_inches="tight")
+                print(f"Saved to {args.save}")
+            except Exception as e:
+                print(f"Save failed: {e}")
+    else:  # all
+        viz.plot_fastest_laps_track()
+        if args.save:
+            try:
+                base = Path(args.save)
+                # save first figure
+                plt.gcf().savefig(str(base).replace(".png", "_track.png") if str(base).endswith(".png") else str(base), dpi=FIGURE_DPI, bbox_inches="tight")
+            except Exception:
+                pass
+        viz.plot_speed_comparison()
+        viz.plot_sector_analysis()
+        viz.plot_race_pace()
+
+    if args.no_show:
+        try:
+            plt.close("all")
+        except Exception:
+            pass
+
+
+def main(argv=None) -> None:
+    """Main entry point — thin wrapper over core.
+
+    Pure function: no input() when imported unless argv triggers interactive path.
+    Supports both scriptable args and legacy interactive prompts.
+
+    Args:
+        argv: Optional list of args (for testing). If None, uses sys.argv[1:].
+    """
+    # If called with explicit argv (testing) or with args on CLI, use argparse path
+    # If no args provided at all, fall back to interactive menus for backward compat
+    raw = argv if argv is not None else sys.argv[1:]
+    has_cli_args = len(raw) > 0 and any(a.startswith("-") or a.startswith("--") for a in raw) or any(
+        a in ("--year", "--track", "--session", "--analysis", "--save", "--no-show") for a in raw
+    )
+    # Also if argv contains --help naturally handled by argparse
+
+    # If no CLI args and not testing with argv, do interactive fallback
+    if not has_cli_args and argv is None and len(sys.argv) == 1:
+        # Legacy interactive path (keeps input loops only here)
+        print("\n" + "═" * 70)
+        print("  🏎️  F1 RACE SESSION ADVANCED VISUALIZER")
+        print("  Powered by FastF1  |  Telemetry & Strategy Analysis")
+        print("═" * 70)
+        _setup_cache()
+        year = _input_year()
+        track = get_track_selection()
+        print(f"\nLoading: {year} {track.country} GP — Race Session")
+        print("   This may take a moment (downloading timing & telemetry data)...")
+        try:
+            session = fastf1.get_session(year, track.fastf1_name, 'R')
+            session.load(telemetry=True, laps=True, weather=False)
+        except fastf1.core.DataNotLoadedError as e:
+            print(f"\nFailed to load session data: {e}")
+            print("   This may happen if the session hasn't occurred yet or data is unavailable.")
+            sys.exit(1)
+        except Exception as e:
+            print(f"\nUnexpected error loading session: {e}")
+            sys.exit(1)
+        laps = session.laps
+        if laps is None or laps.empty:
+            print("\nNo lap data available for this session.")
+            sys.exit(1)
+        print("\nLoaded successfully!")
+        print(f"   Total laps recorded: {len(laps)}")
+        print(f"   Drivers: {len(laps['Driver'].unique())}")
+        viz = TrackVisualizer(session, year, track)
+        while True:
+            choice = display_analysis_menu()
+            if choice == 0:
+                print("\nGoodbye! Data Scientist 🏎 ️")
+                break
+            elif choice == 1:
+                viz.plot_fastest_laps_track()
+            elif choice == 2:
+                print("\nAvailable drivers:", ", ".join(viz.all_drivers))
+                drv_input = input("Enter driver codes (comma-separated, or 'all'): ").strip().upper()
+                if drv_input == 'ALL':
+                    viz.plot_speed_comparison(viz.all_drivers)
                 else:
-                    print("⚠ No valid drivers selected.")
-        elif choice == 3:
-            viz.plot_sector_analysis()
-        elif choice == 4:
-            viz.plot_race_pace()
-        elif choice == 5:
-            viz.plot_fastest_laps_track()
-            viz.plot_speed_comparison()
-            viz.plot_sector_analysis()
-            viz.plot_race_pace()
+                    selected = [d.strip() for d in drv_input.split(",") if d.strip() in viz.all_drivers]
+                    if selected:
+                        viz.plot_speed_comparison(selected)
+                    else:
+                        print("⚠ No valid drivers selected.")
+            elif choice == 3:
+                viz.plot_sector_analysis()
+            elif choice == 4:
+                viz.plot_race_pace()
+            elif choice == 5:
+                viz.plot_fastest_laps_track()
+                viz.plot_speed_comparison()
+                viz.plot_sector_analysis()
+                viz.plot_race_pace()
+        return
+
+    # Scriptable path
+    try:
+        args = _parse_args(argv if argv is not None else None)
+    except SystemExit as e:
+        # Allow --help to propagate correctly
+        raise
+    # If no track given but interactive requested via flag? For now error
+    if args.track is None and not has_cli_args:
+        # Treat empty parsed args as interactive fallback already handled
+        print("Missing required --track argument. Use --help for usage.")
+        sys.exit(2)
+    _run_with_args(args)
 
 
 if __name__ == "__main__":
