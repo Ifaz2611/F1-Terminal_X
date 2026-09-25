@@ -12,9 +12,11 @@ node_modules/
 cache/
 *.cache
 
-#f1_cache_advanced_visualizer/
-
+# FastF1 caches (unified at root/cache and legacy locations)
 f1_cache/
+f1_terminal/f1_cache/
+F1_Main_py/cache/
+.cache/fastf1/
 
 
 # Logs
@@ -43,3 +45,5 @@ Thumbs.db
 
 # If there are project-specific cache dirs, add them below (example):
 # /path/to/cache/
+
+TODO.md

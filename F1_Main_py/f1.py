@@ -36,7 +36,8 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 warnings.filterwarnings('ignore', category=UserWarning)
 
 # ── Configuration ──────────────────────────────────────────────────────────
-CACHE_DIR = Path("cache")
+# Cache dir resolved relative to file so running from any cwd works
+CACHE_DIR = (Path(__file__).parent.parent / "cache").resolve()
 SEASON = 2026
 SESSION_TYPE = "R"
 FIGURE_DPI = 150
@@ -149,7 +150,12 @@ def select_driver(session: fastf1.core.Session) -> Tuple[str, str]:
             if item[1] == result:
                 return result, item[2]
         return result, result
-    return _select_fallback(choices, "Select a driver:"), result
+    # Fallback path: questionary not available or cancelled
+    fallback_code = _select_fallback(choices, "Select a driver:")
+    for item in driver_data:
+        if item[1] == fallback_code:
+            return fallback_code, item[2]
+    return fallback_code, fallback_code
 
 
 # ── Telemetry Fetching (Fixed) ────────────────────────────────────────────
@@ -178,8 +184,16 @@ def get_fastest_lap_telemetry(
     This is the CORRECT approach — it handles interpolation, merging,
     and Date column management automatically.
     """
-
-    driver_laps = session.laps.pick_drivers(driver_code)
+    # Use pick_driver for single driver; fallback to pick_drivers if needed
+    try:
+        driver_laps = session.laps.pick_drivers(driver_code)
+        if driver_laps.empty and hasattr(session.laps, "pick_driver"):
+            driver_laps = session.laps.pick_driver(driver_code)
+    except (AttributeError, TypeError):
+        try:
+            driver_laps = session.laps.pick_driver(driver_code)
+        except Exception:
+            driver_laps = session.laps.pick_drivers([driver_code])
 
     if driver_laps.empty:
         print(f"⚠️  No lap data found for {driver_name}.")

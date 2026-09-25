@@ -28,43 +28,51 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 warnings.filterwarnings('ignore', category=UserWarning)
 
 # ── Configuration ──────────────────────────────────────────────────────────
-CACHE_DIR = Path(__file__).parent / 'f1_cache'
+# Unified cache dir (project_root/cache) so all scripts share cache
+CACHE_DIR = (Path(__file__).parent.parent / 'cache').resolve()
 MIN_YEAR, MAX_YEAR = 2018, 2030
 FIGURE_DPI = 150
 
-# ── Track Database (2025 Calendar) ───────────────────────────────────────
-@dataclass(frozen=True)
-class Track:
-    round_num: int
-    country: str
-    city: str
-    name: str
-    fastf1_name: str  # Name used by fastf1.get_session()
+# ── Track Database (canonical) ───────────────────────────────────────────
+# Use canonical tracks.py; fallback to inline if import fails (e.g. run as isolated script)
+try:
+    from f1_terminal.tracks import Track, TRACKS  # type: ignore
+except ImportError:
+    try:
+        from tracks import Track, TRACKS  # type: ignore
+    except ImportError:
+        @dataclass(frozen=True)
+        class Track:  # type: ignore[no-redef]
+            round_num: int
+            country: str
+            city: str
+            name: str
+            fastf1_name: str
 
-TRACKS: Dict[int, Track] = {
-    1:  Track(1,  "Australia",     "Melbourne",       "Albert Park",                  "Australia"),
-    2:  Track(2,  "China",         "Shanghai",        "Shanghai International Circuit", "China"),
-    3:  Track(3,  "Japan",         "Suzuka",          "Suzuka",                       "Japan"),
-    4:  Track(4,  "USA",           "Miami",           "Miami International Autodrome","Miami"),
-    5:  Track(5,  "Canada",        "Montreal",        "Circuit Gilles Villeneuve",    "Canada"),
-    6:  Track(6,  "Monaco",        "Monaco",          "Monaco",                       "Monaco"),
-    7:  Track(7,  "Spain",         "Barcelona",       "Circuit de Catalunya",         "Spain"),
-    8:  Track(8,  "Austria",       "Spielberg",       "Red Bull Ring",                "Austria"),
-    9:  Track(9,  "Great Britain", "Silverstone",     "Silverstone",                  "Great Britain"),
-    10: Track(10, "Belgium",       "Spa-Francorchamps","Spa-Francorchamps",           "Belgium"),
-    11: Track(11, "Hungary",       "Budapest",        "Hungaroring",                  "Hungary"),
-    12: Track(12, "Netherlands",   "Zandvoort",       "Zandvoort",                    "Netherlands"),
-    13: Track(13, "Italy",         "Monza",           "Monza",                        "Italy"),
-    14: Track(14, "Spain",         "Madrid",          "Madrid (Jarama)",              "Spain"),
-    15: Track(15, "Azerbaijan",    "Baku",            "Baku City Circuit",            "Azerbaijan"),
-    16: Track(16, "Singapore",     "Singapore",       "Singapore",                    "Singapore"),
-    17: Track(17, "USA",           "Austin",          "Circuit of the Americas",      "United States"),
-    18: Track(18, "Mexico",        "Mexico City",     "Mexico City",                  "Mexico"),
-    19: Track(19, "Brazil",        "São Paulo",       "Interlagos",                   "Brazil"),
-    20: Track(20, "USA",           "Las Vegas",       "Las Vegas Strip Circuit",      "Las Vegas"),
-    21: Track(21, "Qatar",         "Lusail",          "Lusail",                       "Qatar"),
-    22: Track(22, "Abu Dhabi",     "Yas Marina",      "Yas Marina",                   "Abu Dhabi"),
-}
+        TRACKS: Dict[int, Track] = {
+            1:  Track(1,  "Australia",     "Melbourne",       "Albert Park",                  "Australia"),
+            2:  Track(2,  "China",         "Shanghai",        "Shanghai International Circuit", "China"),
+            3:  Track(3,  "Japan",         "Suzuka",          "Suzuka",                       "Japan"),
+            4:  Track(4,  "USA",           "Miami",           "Miami International Autodrome","Miami"),
+            5:  Track(5,  "Canada",        "Montreal",        "Circuit Gilles Villeneuve",    "Canada"),
+            6:  Track(6,  "Monaco",        "Monaco",          "Monaco",                       "Monaco"),
+            7:  Track(7,  "Spain",         "Barcelona",       "Circuit de Catalunya",         "Spain"),
+            8:  Track(8,  "Austria",       "Spielberg",       "Red Bull Ring",                "Austria"),
+            9:  Track(9,  "Great Britain", "Silverstone",     "Silverstone",                  "Great Britain"),
+            10: Track(10, "Belgium",       "Spa-Francorchamps","Spa-Francorchamps",           "Belgium"),
+            11: Track(11, "Hungary",       "Budapest",        "Hungaroring",                  "Hungary"),
+            12: Track(12, "Netherlands",   "Zandvoort",       "Zandvoort",                    "Netherlands"),
+            13: Track(13, "Italy",         "Monza",           "Monza",                        "Italy"),
+            14: Track(14, "Spain",         "Madrid",          "Madring",                      "Spain"),
+            15: Track(15, "Azerbaijan",    "Baku",            "Baku City Circuit",            "Azerbaijan"),
+            16: Track(16, "Singapore",     "Singapore",       "Singapore",                    "Singapore"),
+            17: Track(17, "USA",           "Austin",          "Circuit of the Americas",      "United States"),
+            18: Track(18, "Mexico",        "Mexico City",     "Mexico City",                  "Mexico"),
+            19: Track(19, "Brazil",        "São Paulo",       "Interlagos",                   "Brazil"),
+            20: Track(20, "USA",           "Las Vegas",       "Las Vegas Strip Circuit",      "Las Vegas"),
+            21: Track(21, "Qatar",         "Lusail",          "Lusail",                       "Qatar"),
+            22: Track(22, "Abu Dhabi",     "Yas Marina",      "Yas Marina",                   "Abu Dhabi"),
+        }
 
 # ── Color & Style Setup ──────────────────────────────────────────────────
 fastf1.plotting.setup_mpl(mpl_timedelta_support=True, color_scheme='fastf1')
@@ -99,19 +107,35 @@ def _fmt_laptime_seconds(td: Optional[pd.Timedelta]) -> float:
 
 
 def _get_team_color(session, driver_code: str, fallback_cmap, idx: int, total: int) -> str:
-    """Safely extract team color from session driver info."""
+    """Safely extract team color from session driver info. Always returns hex string."""
     try:
         driver_info = session.get_driver(driver_code)
-        team_color = driver_info.get('TeamColor', None)
+        # handle both dict/Series and attribute access
+        if hasattr(driver_info, 'get'):
+            team_color = driver_info.get('TeamColor', None)
+        else:
+            team_color = getattr(driver_info, 'TeamColor', None)
         if team_color is not None:
-            # TeamColor can be int or hex string
             if isinstance(team_color, int):
                 return f"#{team_color:06X}"
-            elif isinstance(team_color, str) and team_color.strip():
-                return f"#{team_color.lstrip('#')}"
+            s = str(team_color).strip().lstrip('#')
+            if s and s.lower() != 'nan':
+                # fastf1 sometimes returns int as string without leading zeros
+                if s.isdigit():
+                    try:
+                        return f"#{int(s):06X}"
+                    except Exception:
+                        pass
+                return f"#{s}"
     except Exception:
         pass
-    return fallback_cmap(idx / max(total, 1))
+    # fallback_cmap returns RGBA tuple; convert to hex
+    rgba = fallback_cmap(idx / max(total, 1))
+    try:
+        import matplotlib.colors as mcolors
+        return mcolors.to_hex(rgba)
+    except Exception:
+        return f"#{int(rgba[0]*255):02X}{int(rgba[1]*255):02X}{int(rgba[2]*255):02X}"
 
 
 def _input_int(prompt: str, min_val: int, max_val: int) -> int:
@@ -231,26 +255,33 @@ class TrackVisualizer:
 
         for drv, fastest, telemetry, team in entries:
             color = self._driver_colors[drv]
+            # Drop NaNs in position for clean plotting
+            tel_clean = telemetry.dropna(subset=['X','Y'])
+            if tel_clean.empty:
+                continue
 
-            # Plot track line with gradient alpha based on speed
-            if 'Speed' in telemetry.columns:
-                speeds = telemetry['Speed'].fillna(0).values
-                norm_speed = (speeds - speeds.min()) / max(speeds.max() - speeds.min(), 1)
-                alphas = 0.3 + 0.7 * norm_speed  # Higher speed = more opaque
-
-                # Create line collection for speed-based coloring
-                points = np.array([telemetry['X'].values, telemetry['Y'].values]).T.reshape(-1, 1, 2)
-                segments = np.concatenate([points[:-1], points[1:]], axis=1)
-                lc = LineCollection(segments, cmap='viridis', norm=plt.Normalize(speeds.min(), speeds.max()))
-                lc.set_array(speeds)
-                lc.set_linewidth(2.0)
-                ax.add_collection(lc)
-
-                # Simple line for legend
-                line, = ax.plot([], [], color=color, linewidth=2.5, label=f"{drv}")
+            # Plot track line with speed-based colormap if available
+            if 'Speed' in tel_clean.columns and tel_clean['Speed'].notna().any():
+                speeds = tel_clean['Speed'].fillna(tel_clean['Speed'].median()).values
+                # Guard against constant speed
+                vmin, vmax = float(np.nanmin(speeds)), float(np.nanmax(speeds))
+                if vmax == vmin:
+                    vmax = vmin + 1
+                points = np.array([tel_clean['X'].values, tel_clean['Y'].values]).T.reshape(-1, 1, 2)
+                if len(points) < 2:
+                    line, = ax.plot(tel_clean['X'], tel_clean['Y'], color=color, linewidth=2.0, alpha=0.85, label=f"{drv}")
+                else:
+                    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+                    lc = LineCollection(segments, cmap='viridis', norm=plt.Normalize(vmin, vmax))
+                    lc.set_array(speeds)
+                    lc.set_linewidth(2.0)
+                    ax.add_collection(lc)
+                    # Dummy line for legend with team color
+                    line, = ax.plot([], [], color=color, linewidth=2.5, label=f"{drv}")
+                    ax.autoscale()
             else:
                 line, = ax.plot(
-                    telemetry['X'], telemetry['Y'],
+                    tel_clean['X'], tel_clean['Y'],
                     color=color, linewidth=2.0, alpha=0.85,
                     label=f"{drv}"
                 )
