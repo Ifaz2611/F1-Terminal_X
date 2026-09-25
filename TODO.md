@@ -151,20 +151,20 @@ F1-Terminal_X/
 
 **Goal:** No drift, no broken imports, CI green.
 
-- [ ] **P0-1 README ↔ Code drift** — `README.md:61` references `f1_terminal.io:1` (`load_session_data`), `f1_terminal.transform:111` (`prepare_telemetry_trace`), `f1_terminal.features:121` (`engineer_lap_features`) which don't exist.
-  - [ ] Create stubs: `f1_terminal/core/io.py` (`load_session_data(year,track,session)` handles CSV or FastF1), `transforms.py` (`prepare_telemetry_trace(session, driver, lap)`), `features.py` (`engineer_lap_features(session, drivers)` returns DataFrame with `CornerSpeed`, `BrakingPoint`, etc.)
-  - [ ] Or rewrite README examples to use existing `fastf1.get_session` directly — pick one, don't leave broken imports.
-  - [ ] Add `data/telemetry_sample.csv` (1 lap, columns `X,Y,Speed,Throttle,Brake,nGear,DRS,Distance`) + `data/README.md`.
-  - [ ] Populate `examples/` (4 files from `README.md:79` table) or remove table; ensure `docs/demo.gif` exists or remove badge.
-  - [ ] Fix `Project Structure` block `README.md:132` — it still shows `formula1_test/`, `Aspects/` (should be `f1_terminal/`, `F1_Main_py/`, `docs/`).
+- [x] **P0-1 README ↔ Code drift** — `README.md:61` references `f1_terminal.io:1` (`load_session_data`), `f1_terminal.transform:111` (`prepare_telemetry_trace`), `f1_terminal.features:121` (`engineer_lap_features`) which don't exist.
+  - [x] Create stubs: `f1_terminal/core/io.py` (`load_session_data(year,track,session)` handles CSV or FastF1), `transforms.py` (`prepare_telemetry_trace(session, driver, lap)`), `features.py` (`engineer_lap_features(session, drivers)` returns DataFrame with `CornerSpeed`, `BrakingPoint`, etc.)
+  - [x] Or rewrite README examples to use existing `fastf1.get_session` directly — pick one, don't leave broken imports.
+  - [x] Add `data/telemetry_sample.csv` (1 lap, columns `X,Y,Speed,Throttle,Brake,nGear,DRS,Distance`) + `data/README.md`.
+  - [x] Populate `examples/` (4 files from `README.md:79` table) or remove table; ensure `docs/demo.gif` exists or remove badge.
+  - [x] Fix `Project Structure` block `README.md:132` — it still shows `formula1_test/`, `Aspects/` (should be `f1_terminal/`, `F1_Main_py/`, `docs/`).
 
-- [ ] **P0-2 Tests bootstrap** — `tests/` + `pytest` + fixtures with mocked `fastf1` (no network in CI)
-  - [ ] `tests/test_tracks.py`: 22 entries, `get_track(1).fastf1_name != get_track(14).fastf1_name` despite both `country=="Spain"`, `get_track(99)` raises.
-  - [ ] `tests/test_cache_setup.py`: import `f1_terminal.f1_advanced_visualizer` does not create nested `f1_cache/` outside `cache/`.
-  - [ ] `tests/test_visualizer_smoke.py`: mock `session.laps` DataFrame, call `TrackVisualizer(...).plot_*` with `matplotlib.use('Agg')` and assert `Figure` returned (no `plt.show()`).
-  - [ ] `tests/conftest.py`: `mock_session` fixture.
+- [x] **P0-2 Tests bootstrap** — `tests/` + `pytest` + fixtures with mocked `fastf1` (no network in CI)
+  - [x] `tests/test_tracks.py`: 22 entries, `get_track(1).fastf1_name != get_track(14).fastf1_name` despite both `country=="Spain"`, `get_track(99)` raises.
+  - [x] `tests/test_cache_setup.py`: import `f1_terminal.f1_advanced_visualizer` does not create nested `f1_cache/` outside `cache/`.
+  - [x] `tests/test_visualizer_smoke.py`: mock `session.laps` DataFrame, call `TrackVisualizer(...).plot_*` with `matplotlib.use('Agg')` and assert `Figure` returned (no `plt.show()`).
+  - [x] `tests/conftest.py`: `mock_session` fixture.
 
-- [ ] **P0-3 CI** — `.github/workflows/ci.yml`
+- [x] **P0-3 CI** — `.github/workflows/ci.yml`
   ```yaml
   on: [push, pull_request]
   jobs:
@@ -181,11 +181,11 @@ F1-Terminal_X/
         - run: pytest -q
   ```
 
-- [ ] **P0-4 Logging** — replace `print()` with `logging`
-  - [ ] `f1_terminal/config.py:1` → `LOG_LEVEL`, `LOG_FORMAT`; use `rich.logging.RichHandler` when `rich` installed.
-  - [ ] Add `--verbose` / `-v` flag to all CLIs; `logger.info("Loading %s %s ...", year, track)` instead of `print`.
+- [x] **P0-4 Logging** — replace `print()` with `logging`
+  - [x] `f1_terminal/config.py:1` → `LOG_LEVEL`, `LOG_FORMAT`; use `rich.logging.RichHandler` when `rich` installed.
+  - [x] Add `--verbose` / `-v` flag to all CLIs; `logger.info("Loading %s %s ...", year, track)` instead of `print`.
 
-- [ ] **P0-5 Config centralization** — `f1_terminal/config.py`
+- [x] **P0-5 Config centralization** — `f1_terminal/config.py`
   ```python
   from pydantic_settings import BaseSettings
   from pathlib import Path
@@ -199,14 +199,14 @@ F1-Terminal_X/
   ```
   Replace hardcoded `2018,2030,2026,150` across `F1_Main_py/f1.py:43`, `driver.py`, `f1_advanced_visualizer.py:31`.
 
-- [ ] **P0-6 Git hygiene**
-  - [ ] `git rm -r --cached F1_Main_py/__pycache__ f1_terminal/__pycache__` ; ensure `.gitignore:11` covers `__pycache__/`, `.pytest_cache/`, `*.egg-info/`, `dist/`.
-  - [ ] Rename `Aspects/` → `docs/reference/` (or keep but add `docs/reference/README.md` explaining it); update `Aspects/fastf1_reference.md:1` links.
-  - [ ] Remove `Schedule&Driver.py` shim in v2.0 — add `TODO` comment with removal version.
+- [x] **P0-6 Git hygiene**
+  - [x] `git rm -r --cached F1_Main_py/__pycache__ f1_terminal/__pycache__` ; ensure `.gitignore:11` covers `__pycache__/`, `.pytest_cache/`, `*.egg-info/`, `dist/`.
+  - [x] Rename `Aspects/` → `docs/reference/` (or keep but add `docs/reference/README.md` explaining it); update `Aspects/fastf1_reference.md:1` links.
+  - [x] Remove `Schedule&Driver.py` shim in v2.0 — add `TODO` comment with removal version.
 
-- [ ] **P0-7 Type hints & docstrings** — `ruff` + `mypy` pass on `f1_terminal/core/`.
+- [x] **P0-7 Type hints & docstrings** — `ruff` + `mypy` pass on `f1_terminal/core/`.
 
-**Exit Criteria:** `pytest` green, `ruff` clean, `README` examples run without ImportError, `cache/` is single dir, CI badge green.
+**Exit Criteria:** `pytest` green, `ruff` clean, `README` examples run without ImportError, `cache/` is single dir, CI badge green. **Met.**
 
 ---
 
