@@ -22,7 +22,6 @@ warnings.filterwarnings('ignore', category=UserWarning)
 # ── Cache setup (unified via config) ─────────────────────────────────────
 try:
     from f1_terminal.config import CACHE_DIR, FIGURE_DPI, MAX_YEAR, MIN_YEAR, get_logger
-    from f1_terminal.config import settings as _settings
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     try:

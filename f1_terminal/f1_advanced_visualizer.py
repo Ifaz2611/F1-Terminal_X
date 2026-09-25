@@ -588,7 +588,6 @@ def _run_with_args(args) -> None:
                         break
                 if track is None:
                     # dummy Track
-                    from dataclasses import dataclass as _dc
 
                     @dataclass(frozen=True)
                     class _Tmp:
@@ -769,7 +768,7 @@ def main(argv=None) -> None:
     # Scriptable path
     try:
         args = _parse_args(argv if argv is not None else None)
-    except SystemExit as e:
+    except SystemExit:
         # Allow --help to propagate correctly
         raise
     # If no track given but interactive requested via flag? For now error

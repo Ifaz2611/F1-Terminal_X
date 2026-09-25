@@ -123,7 +123,6 @@ def advanced_cmd(
         plot_race_pace,
         plot_sector_bars,
         plot_speed_trace,
-        plot_track_map,
     )
     from f1_terminal.core.telemetry import get_driver_telemetry
 
@@ -167,7 +166,7 @@ def advanced_cmd(
         fig, ax = plt.subplots(figsize=(14, 10), dpi=FIGURE_DPI)
         # Overlay all drivers' fastest telemetry
         # Collect valid entries
-        from f1_terminal.core.telemetry import get_fastest_lap, get_telemetry
+        from f1_terminal.core.telemetry import get_fastest_lap
 
         drivers_list = wrapper.drivers
         # sort by lap time? need fastest lap times
@@ -303,8 +302,9 @@ def advanced_cmd(
 
     if do_pace:
         fig, ax = plt.subplots(figsize=(14, 8), dpi=FIGURE_DPI)
-        from f1_terminal.core.colors import get_team_color
         import matplotlib.pyplot as plt
+
+        from f1_terminal.core.colors import get_team_color
 
         cmap = plt.get_cmap("tab20")
         colors = {drv: get_team_color(wrapper, drv, cmap, i, len(wrapper.drivers)) for i, drv in enumerate(wrapper.drivers)}
@@ -523,7 +523,12 @@ def telemetry(
         fig = None  # type: ignore[assignment]
     elif plot == "all":
         fig, axes = plt.subplots(4, 1, figsize=(14, 12), dpi=FIGURE_DPI)
-        from f1_terminal.core.plotting import plot_gear_map, plot_speed_trace, plot_throttle_brake, plot_track_map
+        from f1_terminal.core.plotting import (
+            plot_gear_map,
+            plot_speed_trace,
+            plot_throttle_brake,
+            plot_track_map,
+        )
 
         plot_speed_trace(axes[0], tel, color=color)
         plot_throttle_brake(axes[1], tel)

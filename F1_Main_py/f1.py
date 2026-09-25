@@ -11,13 +11,6 @@ from __future__ import annotations
 
 import warnings
 
-warnings.warn(
-    "F1_Main_py.f1 is deprecated; use f1_terminal.core / f1 CLI. Will be removed in v2.0",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-# Re-export core for backward compat
 from f1_terminal.core.colors import get_team_color  # noqa: F401
 from f1_terminal.core.errors import (  # noqa: F401
     DriverNotFoundError,
@@ -26,7 +19,17 @@ from f1_terminal.core.errors import (  # noqa: F401
     TelemetryNotAvailableError,
 )
 from f1_terminal.core.session import SessionWrapper, get_schedule, load_session  # noqa: F401
-from f1_terminal.core.telemetry import get_driver_telemetry, get_fastest_lap, get_telemetry  # noqa: F401
+from f1_terminal.core.telemetry import (  # noqa: F401
+    get_driver_telemetry,
+    get_fastest_lap,
+    get_telemetry,
+)
+
+warnings.warn(
+    "F1_Main_py.f1 is deprecated; use f1_terminal.core / f1 CLI. Will be removed in v2.0",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 # Thin wrapper entry point — delegates to new core-powered visualizer
 try:

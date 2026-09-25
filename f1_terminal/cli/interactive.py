@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from f1_terminal.config import get_logger
 
 logger = get_logger(__name__)

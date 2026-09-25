@@ -9,16 +9,24 @@ from __future__ import annotations
 
 import warnings
 
+from f1_terminal.core.colors import get_team_color  # noqa: F401
+from f1_terminal.core.errors import (  # noqa: F401
+    DriverNotFoundError,
+    F1DataError,
+    TelemetryNotAvailableError,
+)
+from f1_terminal.core.session import SessionWrapper, get_schedule, load_session  # noqa: F401
+from f1_terminal.core.telemetry import (  # noqa: F401
+    get_driver_telemetry,
+    get_fastest_lap,
+    get_telemetry,
+)
+
 warnings.warn(
     "F1_Main_py.driver is deprecated; use f1_terminal.core. Will be removed in v2.0",
     DeprecationWarning,
     stacklevel=2,
 )
-
-from f1_terminal.core.errors import DriverNotFoundError, F1DataError, TelemetryNotAvailableError  # noqa: F401
-from f1_terminal.core.session import SessionWrapper, get_schedule, load_session  # noqa: F401
-from f1_terminal.core.telemetry import get_driver_telemetry, get_fastest_lap, get_telemetry  # noqa: F401
-from f1_terminal.core.colors import get_team_color  # noqa: F401
 
 # Keep legacy helpers for backward compat (used by old tests if any)
 def _get_driver_field(driver, key: str, default: str = "Unknown") -> str:  # noqa: D401
@@ -36,7 +44,6 @@ def _get_driver_field(driver, key: str, default: str = "Unknown") -> str:  # noq
     return default
 
 def _resolve_driver_laps(target_laps, code):  # noqa: ANN001
-    from f1_terminal.core.session import SessionWrapper as _SW  # lazy
     import pandas as pd  # noqa: F401
 
     # delegate to core helper
@@ -48,12 +55,10 @@ def _resolve_driver_laps(target_laps, code):  # noqa: ANN001
 
 def main(argv=None):  # type: ignore[no-redef]
     """Legacy driver analyzer entry — delegates to new CLI."""
-    from f1_terminal.cli.main import driver as _driver_cli
 
     # For backward compat, run the old interactive driver analyzer if no argv
     # Otherwise delegate to CLI driver command
     if argv is None:
-        import sys
         # Old driver.py had a rich interactive menu; now just call CLI schedule+driver flow
         # Preserve minimal behavior: show help
         print("F1_Main_py.driver: use 'f1 driver --help' (core-powered). Delegating...")
