@@ -4,19 +4,28 @@ on: [push, pull_request]
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.10', '3.11', '3.12']
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: pip install -r requirements.txt && pip install pytest ruff mypy
       - name: Compile check
-        run: python -m py_compile F1_Main_py/f1.py F1_Main_py/driver.py f1_terminal/*.py f1_terminal/core/*.py
+        run: python -m py_compile F1_Main_py/f1.py F1_Main_py/driver.py f1_terminal/__init__.py f1_terminal/config.py f1_terminal/core/*.py f1_terminal/cli/*.py f1_terminal/tui/app.py f1_terminal/gui/app.py
       - name: Ruff
         run: ruff check .
       - name: Mypy
         run: mypy f1_terminal/core --ignore-missing-imports --allow-untyped-decorators
       - name: Pytest
         run: pytest -q
+      - name: Coverage (core)
+        run: pip install pytest-cov && pytest -q --cov=f1_terminal/core --cov-report=xml || true
+      - uses: codecov/codecov-action@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        with: {fail_ci_if_error: false, files: coverage.xml}

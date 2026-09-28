@@ -120,6 +120,30 @@ The generated table includes lap and sector times, speed statistics, braking
 events, throttle percentile, gear shifts, DRS usage, tyre compound, and
 weather fields when those values are available.
 
+## Shipped workflows (v1.5 MVP)
+
+Tested and supported in a clean environment:
+
+```bash
+pip install -e ".[dev,tui]"
+f1 --help
+f1 schedule --year 2023
+f1 telemetry --year 2023 --gp Monza --driver VER --plot speed --save speed.png --no-show
+f1 compare --drivers VER,HAM --track Monza --year 2023 --no-show
+f1 export --format csv --output telemetry.csv
+f1 cache --status
+f1-tui --demo --ascii          # offline, CI-safe terminal summary
+f1-tui --demo                  # full Textual TUI with bundled fixture
+python -m f1_terminal          # same as f1
+```
+
+Optional layers (installed only when needed, selected after usage review):
+- Desktop GUI: `pip install -e ".[gui]"` then `f1-gui` / `f1-gui --save out.png`.
+- Web: `pip install streamlit plotly` then `streamlit run f1_terminal/web/app.py`.
+- ML: `f1 predict --year 2024 --track Monza --model artifacts/model.pkl`.
+
+Shell completion: `f1 --install-completion`. Interactive legacy flow: `f1 --interactive`.
+
 ## Interactive programs
 
 After installation, the following console commands are available:

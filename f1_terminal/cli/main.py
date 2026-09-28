@@ -644,6 +644,199 @@ def driver(
             typer.echo(f"{code}: failed ({e})")
 
 
+@app.command("compare")
+def compare_cmd(
+    year: Annotated[int, typer.Option("--year", "-y")] = 2024,
+    track: Annotated[str, typer.Option("--track", "-t")] = "Silverstone",
+    session: Annotated[str, typer.Option("--session", "-s")] = "R",
+    drivers: Annotated[str, typer.Option("--drivers", help="Comma-separated, e.g. VER,HAM,LEC")] = "VER,HAM",
+    save: Annotated[Optional[Path], typer.Option("--save")] = None,
+    no_show: Annotated[bool, typer.Option("--no-show")] = False,
+) -> None:
+    """Compare drivers' speed traces (backlog: f1 compare)."""
+    from f1_terminal.core.session import load_session
+    from f1_terminal.core.telemetry import get_driver_telemetry
+
+    codes = [d.strip().upper() for d in drivers.split(",") if d.strip()]
+    try:
+        wrapper = load_session(year, track, session)
+    except Exception as e:
+        typer.echo(f"Load failed: {e}", err=True)
+        raise typer.Exit(code=1)
+    import matplotlib.pyplot as plt
+
+    from f1_terminal.core.colors import get_team_color
+    from f1_terminal.core.plotting import plot_speed_trace
+
+    fig, axes = plt.subplots(len(codes), 1, figsize=(14, 3 * max(len(codes), 1)), sharex=True, dpi=FIGURE_DPI)
+    if len(codes) == 1:
+        axes = [axes]  # type: ignore[list-item]
+    else:
+        axes = list(axes)  # type: ignore[assignment]
+    cmap = plt.get_cmap("tab20")
+    for i, (ax, drv) in enumerate(zip(axes, codes)):
+        try:
+            fastest, tel = get_driver_telemetry(wrapper, drv)
+            plot_speed_trace(ax, tel, color=get_team_color(wrapper, drv, cmap, i, len(codes)))
+            ax.set_title(drv, loc="left")
+        except Exception as e:
+            ax.text(0.5, 0.5, f"{drv}: {e}", ha="center", transform=ax.transAxes)
+    plt.tight_layout()
+    if save is not None:
+        _save_fig(fig, save)
+    if not no_show:
+        _maybe_show(True)
+    plt.close(fig)
+    typer.echo(f"Compared {', '.join(codes)} for {year} {track} {session}")
+
+
+@app.command("export")
+def export_cmd(
+    year: Annotated[int, typer.Option("--year", "-y")] = 2024,
+    track: Annotated[str, typer.Option("--track", "-t")] = "Monza",
+    session: Annotated[str, typer.Option("--session", "-s")] = "Q",
+    format: Annotated[str, typer.Option("--format", help="csv or parquet")] = "csv",
+    output: Annotated[Path, typer.Option("--output", "-o")] = Path("telemetry.csv"),  # type: ignore[assignment]
+    driver: Annotated[Optional[str], typer.Option("--driver", "-d")] = None,
+) -> None:
+    """Export telemetry/laps (backlog: f1 export --format parquet)."""
+    fmt = format.lower()
+    if fmt not in ("csv", "parquet"):
+        typer.echo("format must be csv or parquet", err=True)
+        raise typer.Exit(code=2)
+    from f1_terminal.core.session import load_session
+
+    try:
+        wrapper = load_session(year, track, session)
+    except Exception:
+        from f1_terminal.tui.workers.session_loader import load_demo_session
+
+        wrapper = load_demo_session().wrapper
+        typer.echo("Using offline demo data")
+    if driver:
+        from f1_terminal.core.telemetry import get_driver_telemetry
+
+        try:
+            _f, df = get_driver_telemetry(wrapper, driver.upper())
+        except Exception as e:
+            typer.echo(f"Telemetry error: {e}", err=True)
+            raise typer.Exit(code=1)
+    else:
+        df = wrapper.laps
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    if fmt == "csv":
+        df.to_csv(str(output), index=False)
+    else:
+        df.to_parquet(str(output), index=False)
+    typer.echo(f"Exported {len(df)} rows to {output}")
+
+
+@app.command("config")
+def config_cmd(
+    set: Annotated[Optional[str], typer.Option("--set", help="KEY=VALUE")] = None,  # noqa: A002
+    list_all: Annotated[bool, typer.Option("--list", help="List settings")] = False,  # noqa: F821
+) -> None:
+    """Show or set config (backlog: f1 config --set cache_dir ~/f1cache)."""
+    from f1_terminal.config import settings
+
+    if list_all or set is None:
+        typer.echo(f"cache_dir={settings.cache_dir}")
+        typer.echo(f"figure_dpi={settings.figure_dpi}")
+        typer.echo(f"min_year={settings.min_year} max_year={settings.max_year}")
+        typer.echo(f"default_season={settings.default_season}")
+        typer.echo(f"log_level={settings.log_level}")
+        return
+    if "=" not in set:
+        typer.echo("Use --set KEY=VALUE", err=True)
+        raise typer.Exit(code=2)
+    key, value = set.split("=", 1)
+    key, value = key.strip(), value.strip()
+    if key == "cache_dir":
+        typer.echo(f"Set cache_dir={value} via env F1_CACHE_DIR={value} (persist in .env)")
+    elif key == "figure_dpi":
+        typer.echo(f"Set figure_dpi={value} via env F1_FIGURE_DPI={value}")
+    else:
+        typer.echo(f"Unknown key {key} (known: cache_dir, figure_dpi)", err=True)
+        raise typer.Exit(code=2)
+
+
+@app.command("cache")
+def cache_cmd(
+    status: Annotated[bool, typer.Option("--status", help="Show cache status")] = False,
+    clear: Annotated[bool, typer.Option("--clear", help="Clear cache")] = False,
+    year: Annotated[Optional[int], typer.Option("--year", "-y")] = None,
+) -> None:
+    """Cache management (P4-2): f1 cache --status / --clear --year 2026."""
+    from f1_terminal.core.cache import cache_status as _status
+    from f1_terminal.core.cache import clear_cache as _clear
+
+    if clear:
+        n = _clear(year)
+        typer.echo(f"Cleared {n} cache entries" + (f" for {year}" if year else ""))
+        return
+    info = _status()
+    typer.echo(f"cache_dir={info['cache_dir']} exists={info['exists']}")
+    typer.echo(f"files={info['files']} bytes={info['bytes']}")
+    typer.echo(f"fastf1_version={info['fastf1_version']}")
+    entries = info.get("entries", {})
+    if isinstance(entries, dict) and entries:
+        for k in list(entries)[:10]:
+            typer.echo(f"  {k}")
+    elif status or True:
+        pass
+
+
+@app.command("predict")
+def predict_cmd(
+    year: Annotated[int, typer.Option("--year", "-y")] = 2024,
+    track: Annotated[str, typer.Option("--track", "-t")] = "Monza",
+    model: Annotated[Optional[Path], typer.Option("--model", help="artifacts/model.pkl")] = None,
+    train_model: Annotated[bool, typer.Option("--train", help="Train on session and save")] = False,
+    output: Annotated[Optional[Path], typer.Option("--output", "-o")] = None,
+) -> None:
+    """Quali-gap prediction (P4-4): f1 predict --year 2024 --track Monza."""
+    from f1_terminal.core.features import engineer_lap_features
+    from f1_terminal.core.session import load_session
+
+    try:
+        wrapper = load_session(year, track, "Q")
+    except Exception:
+        from f1_terminal.tui.workers.session_loader import load_demo_session
+
+        wrapper = load_demo_session().wrapper
+        typer.echo("Using offline demo data")
+    df = engineer_lap_features(wrapper.session if hasattr(wrapper, "session") else wrapper)
+    if df.empty:
+        typer.echo("No features", err=True)
+        raise typer.Exit(code=1)
+    from f1_terminal.ml import load_model as _load
+    from f1_terminal.ml import predict as _predict
+    from f1_terminal.ml import save_model as _save
+    from f1_terminal.ml import train as _train
+
+    pipe = None
+    if model is not None and Path(model).exists() and not train_model:
+        pipe = _load(model)
+    else:
+        try:
+            pipe = _train(df)
+        except Exception as e:
+            typer.echo(f"Train failed: {e}", err=True)
+            raise typer.Exit(code=1)
+        if model is not None:
+            _save(pipe, model)
+            typer.echo(f"Saved model to {model}")
+    preds = _predict(pipe, df)
+    out_df = df[["Driver", "LapNumber", "LapTime_s"]].copy()
+    out_df["PredictedGap_s"] = preds.values
+    typer.echo(out_df.to_string(index=False))
+    if output is not None:
+        Path(output).parent.mkdir(parents=True, exist_ok=True)
+        out_df.to_csv(str(output), index=False)
+        typer.echo(f"Wrote {output}")
+
+
 def main() -> None:
     """Entrypoint for console script ``f1``."""
     app()

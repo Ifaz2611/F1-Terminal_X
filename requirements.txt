@@ -9,6 +9,7 @@ fastf1>=3.1.0
 
 # Interactive CLI
 questionary>=2.0.0
+typer>=0.9.0
 
 # Optional but useful
 seaborn>=0.12.2
@@ -18,12 +19,24 @@ pydantic-settings>=2.0.0
 rich>=13.0.0
 jupyterlab>=4.0.0
 pytest>=7.0.0
+pytest-mpl>=0.16.0
 
 # Dev / lint
 ruff>=0.2.0
 mypy>=1.8.0
+pre-commit>=3.0.0
+bandit>=1.7.0
 
-# TUI (optional)
-# textual>=0.60.0
-# plotext>=5.2.0
-# pillow>=10.0.0
+# TUI
+textual>=0.60.0
+plotext>=5.2.0
+pillow>=10.0.0
+
+# GUI (optional)
+# PyQt6>=6.6.0
+# mplcursors>=0.5.0
+# customtkinter>=5.2.0
+
+# Web / ML (optional)
+# streamlit>=1.30.0
+# plotly>=5.18.0

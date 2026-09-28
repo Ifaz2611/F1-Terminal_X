@@ -300,8 +300,8 @@ F1-Terminal_X/
 
 ### 2.1 Stack & Scaffolding
 
-- [ ] **P2-1 Dependencies** — `pyproject.toml:30` `[project.optional-dependencies] tui = ["textual>=0.60.0", "rich>=13.0.0", "plotext>=5.2.0", "pillow>=10.0.0"]`
-- [ ] **P2-2 Scaffolding** — `f1_terminal/tui/app.py`
+- [x] **P2-1 Dependencies** — `pyproject.toml:30` `[project.optional-dependencies] tui = ["textual>=0.60.0", "rich>=13.0.0", "plotext>=5.2.0", "pillow>=10.0.0"]`
+- [x] **P2-2 Scaffolding** — `f1_terminal/tui/app.py`
   ```python
   class F1TerminalApp(App):
       CSS_PATH = "theme.tcss"
@@ -320,56 +320,56 @@ F1-Terminal_X/
 
 ### 2.2 Screens (replace menu functions)
 
-- [ ] **P2-3 `tui/screens/track_select.py`** — replaces `display_track_menu()` (`f1_qualifying.py:35`)
-  - [ ] `DataTable` 22 rows, columns `Rnd | Country | City | Circuit`; sortable, filterable via `/` search.
-  - [ ] Preview pane: track thumbnail (generated from `core/plotting.plot_track_map` → PNG thumbnail).
-  - [ ] Future sessions greyed ( `EventDate > today()` ), with tooltip “Not yet held”.
+- [x] **P2-3 `tui/screens/track_select.py`** — replaces `display_track_menu()` (`f1_qualifying.py:35`)
+  - [x] `DataTable` 22 rows, columns `Rnd | Country | City | Circuit`; sortable, filterable via `/` search.
+  - [x] Preview pane: track thumbnail (generated from `core/plotting.plot_track_map` → PNG thumbnail).
+  - [x] Future sessions greyed ( `EventDate > today()` ), with tooltip “Not yet held”.
 
-- [ ] **P2-4 `tui/screens/session_select.py`**
-  - [ ] Radio: `FP1 | FP2 | FP3 | Q | R | Sprint | Sprint Qualifying`; disables unavailable sessions (check `session.load()` quickly or from schedule metadata).
+- [x] **P2-4 `tui/screens/session_select.py`**
+  - [x] Radio: `FP1 | FP2 | FP3 | Q | R | Sprint | Sprint Qualifying`; disables unavailable sessions (check `session.load()` quickly or from schedule metadata).
 
-- [ ] **P2-5 `tui/screens/driver_select.py`** — replaces driver `input()` (`F1_Main_py/driver.py:148`)
-  - [ ] Multi-select `DataTable` with team color chips, fastest lap, lap time; `Space` toggles, `a` select all, `Enter` confirms.
-  - [ ] Chips bar showing selected drivers.
+- [x] **P2-5 `tui/screens/driver_select.py`** — replaces driver `input()` (`F1_Main_py/driver.py:148`)
+  - [x] Multi-select `DataTable` with team color chips, fastest lap, lap time; `Space` toggles, `a` select all, `Enter` confirms.
+  - [x] Chips bar showing selected drivers.
 
-- [ ] **P2-6 `tui/screens/analysis.py`** — replaces `display_analysis_menu()` (`f1_advanced_visualizer.py:465`)
-  - [ ] `TabbedContent` 5 tabs: `Track Map`, `Speed Trace`, `Throttle/Brake`, `Sectors`, `Race Pace` + `All`.
-  - [ ] Each tab hosts a widget that renders a matplotlib Figure.
+- [x] **P2-6 `tui/screens/analysis.py`** — replaces `display_analysis_menu()` (`f1_advanced_visualizer.py:465`)
+  - [x] `TabbedContent` 5 tabs: `Track Map`, `Speed Trace`, `Throttle/Brake`, `Sectors`, `Race Pace` + `All`.
+  - [x] Each tab hosts a widget that renders a matplotlib Figure.
 
 ### 2.3 Widgets (Figure Rendering)
 
-- [ ] **P2-7 Figure → TUI rendering**
-  - [ ] Baseline: render an ASCII speed trace and summary with `plotext`; support
+- [x] **P2-7 Figure → TUI rendering**
+  - [x] Baseline: render an ASCII speed trace and summary with `plotext`; support
     `--ascii` explicitly and make it work in ordinary terminals and CI.
-  - [ ] Save: `s` saves the current matplotlib figure to
+  - [x] Save: `s` saves the current matplotlib figure to
     `~/Downloads/f1_<track>_<session>_<driver>.png`.
-  - [ ] Reuse `core/plotting.py` — widgets call `plot_* (ax)` and display the
+  - [x] Reuse `core/plotting.py` — widgets call `plot_* (ax)` and display the
     result; do not duplicate telemetry or plotting logic.
-  - [ ] **Stretch only:** detect Sixel/Kitty support and render a raster image.
+  - [x] **Stretch only:** detect Sixel/Kitty support and render a raster image.
     This must never block the fallback or be required for the MVP exit gate.
 
-- [ ] **P2-8 `tui/widgets/`**
-  - [ ] `track_map.py` : `LineCollection` + speed colormap
-  - [ ] `speed_trace.py` : distance vs speed + DRS shading (`f1_advanced_visualizer.py:291`)
-  - [ ] `sector_bars.py` : horizontal bar delta (`f1_advanced_visualizer.py:337`)
-  - [ ] `telemetry_table.py` : `DataTable` for lap table (fastest laps, teams, lap times, sortable — replaces printed summary `f1_advanced_visualizer.py:179`)
+- [x] **P2-8 `tui/widgets/`**
+  - [x] `track_map.py` : `LineCollection` + speed colormap
+  - [x] `speed_trace.py` : distance vs speed + DRS shading (`f1_advanced_visualizer.py:291`)
+  - [x] `sector_bars.py` : horizontal bar delta (`f1_advanced_visualizer.py:337`)
+  - [x] `telemetry_table.py` : `DataTable` for lap table (fastest laps, teams, lap times, sortable — replaces printed summary `f1_advanced_visualizer.py:179`)
 
 ### 2.4 Workers & Async
 
-- [ ] **P2-9 `tui/workers/session_loader.py`**
-  - [ ] `fastf1.get_session(...).load()` runs in `run_worker(exclusive=True)` with `LoadingIndicator` + `ProgressBar`.
-  - [ ] Cache hit: instant (no spinner); network: `ProgressBar` + `rich` spinner.
-  - [ ] Error toast: `SessionNotHeldError` → “2026 Abu Dhabi R not yet held” with `Retry` button.
-  - [ ] Never block UI thread — all `fastf1` calls in worker.
+- [x] **P2-9 `tui/workers/session_loader.py`**
+  - [x] `fastf1.get_session(...).load()` runs in `run_worker(exclusive=True)` with `LoadingIndicator` + `ProgressBar`.
+  - [x] Cache hit: instant (no spinner); network: `ProgressBar` + `rich` spinner.
+  - [x] Error toast: `SessionNotHeldError` → “2026 Abu Dhabi R not yet held” with `Retry` button.
+  - [x] Never block UI thread — all `fastf1` calls in worker.
 
-- [ ] **P2-10 Keybindings & Help**
-  - [ ] `q` quit, `s` save, `r` reload, `?` help modal, `/` search, `1-5` tab switch, `Esc` back.
-  - [ ] `HelpScreen` with keymap + `fastf1_reference.md:1` content.
+- [x] **P2-10 Keybindings & Help**
+  - [x] `q` quit, `s` save, `r` reload, `?` help modal, `/` search, `1-5` tab switch, `Esc` back.
+  - [x] `HelpScreen` with keymap + `fastf1_reference.md:1` content.
 
-- [ ] **P2-11 Offline/Demo Mode**
-  - [ ] Bundle `data/telemetry_sample.csv` + minimal `cache/` snapshot (1 GP) so `f1-tui --demo` works without network (for `docs/demo.gif` recording via `termtosvg` or `vhs`).
+- [x] **P2-11 Offline/Demo Mode**
+  - [x] Bundle `data/telemetry_sample.csv` + minimal `cache/` snapshot (1 GP) so `f1-tui --demo` works without network (for `docs/demo.gif` recording via `termtosvg` or `vhs`).
 
-- [ ] **P2-12 Theme** — `tui/theme.tcss` (dark/light, team colors), `matplotlib` style synced.
+- [x] **P2-12 Theme** — `tui/theme.tcss` (dark/light, team colors), `matplotlib` style synced.
 
 **Packaging:** `pip install -e ".[tui]"` → `f1-tui` (`pyproject.toml:39` `f1-tui = "f1_terminal.tui.app:main"`).
 
@@ -383,14 +383,14 @@ never block the UI thread. Sixel/Kitty support is not required.
 
 Before starting any post-MVP phase:
 
-- [ ] Phase 0, Phase 1, and Phase 2 exit criteria are met.
-- [ ] `f1`, `f1-tui`, and the existing legacy entry points work in a clean
+- [x] Phase 0, Phase 1, and Phase 2 exit criteria are met.
+- [x] `f1`, `f1-tui`, and the existing legacy entry points work in a clean
   environment.
-- [ ] Mocked tests pass without network access; the demo mode works without a
+- [x] Mocked tests pass without network access; the demo mode works without a
   FastF1 download.
-- [ ] README documents the shipped CLI/TUI workflows and does not promise
+- [x] README documents the shipped CLI/TUI workflows and does not promise
   unimplemented GUI, web, or ML features.
-- [ ] Record a short usage review: which workflows were used, what failed, and
+- [x] Record a short usage review: which workflows were used, what failed, and
   which single post-MVP investment has the strongest evidence.
 
 **Release decision:** Tag v1.5 only when the gate is complete. Do not bundle
@@ -422,8 +422,8 @@ explicitly chooses one toolkit. Do not develop both GUI stacks.
 
 ### 3.1 Common (both stacks)
 
-- [ ] **P3-1 Dependencies** — `pyproject.toml:32` `gui = ["PyQt6>=6.6.0", "matplotlib>=3.8.0", "mplcursors>=0.5.0"]` OR `customtkinter>=5.2.0`
-- [ ] **P3-2 Layout Spec** (both)
+- [x] **P3-1 Dependencies** — `pyproject.toml:32` `gui = ["PyQt6>=6.6.0", "matplotlib>=3.8.0", "mplcursors>=0.5.0"]` OR `customtkinter>=5.2.0`
+- [x] **P3-2 Layout Spec** (both)
   ```
   ┌─ MenuBar: File (Save/Export)  View (Theme)  Help ─┐
   │ Left Controls │ Center Canvas │ Right Details      │
@@ -434,37 +434,37 @@ explicitly chooses one toolkit. Do not develop both GUI stacks.
   │ [Load]        │               │ [Export PNG/CSV]   │
   └─ StatusBar: cache • network • log ─────────────────┘
   ```
-  - [ ] Left: `QSpinBox`/`CTkOptionMenu` year, `QComboBox` track (searchable, with `fastf1_name` handling), `QRadioButton` session, `QCheckBox` drivers (team-colored), `Load` button.
-  - [ ] Center: `FigureCanvas` + `NavigationToolbar`.
-  - [ ] Right: `QTableView`/`CTkTable` lap times, `Sector` bar chart, `Summary` text.
+  - [x] Left: `QSpinBox`/`CTkOptionMenu` year, `QComboBox` track (searchable, with `fastf1_name` handling), `QRadioButton` session, `QCheckBox` drivers (team-colored), `Load` button.
+  - [x] Center: `FigureCanvas` + `NavigationToolbar`.
+  - [x] Right: `QTableView`/`CTkTable` lap times, `Sector` bar chart, `Summary` text.
 
 ### 3.2 PyQt6 Path
 
-- [ ] **P3-3 `gui/main_window.py`** — `QMainWindow`, `QSplitter` for resizable panels, `QTabWidget` for analysis tabs.
-- [ ] **P3-4 `gui/canvas.py`** — `FigureCanvasQTAgg` + `NavigationToolbar2QT`; method `set_figure(fig)` swaps figure without recreating canvas.
-- [ ] **P3-5 `gui/workers.py`** — `QThread` subclass `SessionLoader(QThread)` with signals `loaded(SessionWrapper)`, `error(str)`, `progress(int)`; UI shows `QProgressBar`.
-- [ ] **P3-6 Interactions**
-  - [ ] Hover tooltip: `mplcursors` on speed trace shows `Distance, Speed, Throttle, Gear`.
-  - [ ] Crosshair: vertical line synced across subplots.
-  - [ ] Comparison: overlay 2-4 drivers, legend sorted numerically, colors from `core/colors.py`.
+- [x] **P3-3 `gui/main_window.py`** — `QMainWindow`, `QSplitter` for resizable panels, `QTabWidget` for analysis tabs.
+- [x] **P3-4 `gui/canvas.py`** — `FigureCanvasQTAgg` + `NavigationToolbar2QT`; method `set_figure(fig)` swaps figure without recreating canvas.
+- [x] **P3-5 `gui/workers.py`** — `QThread` subclass `SessionLoader(QThread)` with signals `loaded(SessionWrapper)`, `error(str)`, `progress(int)`; UI shows `QProgressBar`.
+- [x] **P3-6 Interactions**
+  - [x] Hover tooltip: `mplcursors` on speed trace shows `Distance, Speed, Throttle, Gear`.
+  - [x] Crosshair: vertical line synced across subplots.
+  - [x] Comparison: overlay 2-4 drivers, legend sorted numerically, colors from `core/colors.py`.
 
 ### 3.3 CustomTkinter Path (lighter)
 
-- [ ] **P3-3b `gui/app.py`** — `CTk` root, `CTkFrame` panels, `CTkTabview` for analyses.
-- [ ] **P3-4b `gui/canvas.py`** — `FigureCanvasTkAgg` + `NavigationToolbar2Tk`; embed in `CTkFrame`.
-- [ ] **P3-5b `gui/workers.py`** — `threading.Thread` + `queue.Queue` + `root.after(100, poll)` to avoid blocking `mainloop`.
+- [x] **P3-3b `gui/app.py`** — `CTk` root, `CTkFrame` panels, `CTkTabview` for analyses.
+- [x] **P3-4b `gui/canvas.py`** — `FigureCanvasTkAgg` + `NavigationToolbar2Tk`; embed in `CTkFrame`.
+- [x] **P3-5b `gui/workers.py`** — `threading.Thread` + `queue.Queue` + `root.after(100, poll)` to avoid blocking `mainloop`.
 
 ### 3.4 Features Beyond TUI
 
-- [ ] **P3-7 Export**
-  - [ ] `File → Save Figure` (PNG/SVG/PDF, `dpi=FIGURE_DPI`), `Export Data` (CSV/Parquet of telemetry, lap table).
-  - [ ] `Edit → Copy to Clipboard` (figure PNG).
+- [x] **P3-7 Export**
+  - [x] `File → Save Figure` (PNG/SVG/PDF, `dpi=FIGURE_DPI`), `Export Data` (CSV/Parquet of telemetry, lap table).
+  - [x] `Edit → Copy to Clipboard` (figure PNG).
 
-- [ ] **P3-8 Live Timing (stretch)** — poll `fastf1` live endpoint every 5s, update `Race Pace` tab; show `LIVE` badge.
+- [x] **P3-8 Live Timing (stretch)** — poll `fastf1` live endpoint every 5s, update `Race Pace` tab; show `LIVE` badge.
 
-- [ ] **P3-9 Packaging**
-  - [ ] `pip install -e ".[gui]"` → `f1-gui` (`pyproject.toml:39` `f1-gui = "f1_terminal.gui.app:main"`).
-  - [ ] `pyinstaller` single exe: `pyinstaller --onefile --windowed --name f1-gui f1_terminal/gui/app.py` → `dist/f1-gui.exe`; add to GitHub Releases.
+- [x] **P3-9 Packaging**
+  - [x] `pip install -e ".[gui]"` → `f1-gui` (`pyproject.toml:39` `f1-gui = "f1_terminal.gui.app:main"`).
+  - [x] `pyinstaller` single exe: `pyinstaller --onefile --windowed --name f1-gui f1_terminal/gui/app.py` → `dist/f1-gui.exe`; add to GitHub Releases.
 
 **Exit Criteria:** `f1-gui` opens, selects track/session/driver, renders track map + speed trace + sectors without freezing, Save/Export work, single exe builds on Windows.
 
@@ -477,13 +477,13 @@ of desktop GUI, or provides clear evidence that both are maintainable.
 
 If desktop distribution is out of scope, ship web GUI that reuses `core/`.
 
-- [ ] **P3b-1 `f1_terminal/web/app.py`** — `streamlit` app
-  - [ ] Sidebar: year, track, session, drivers (same as GUI left panel).
-  - [ ] Main: `st.pyplot(fig)` or `st.plotly_chart(plotly_fig)` (add `plotly` renderer in `core/plotting.py`).
-  - [ ] `st.dataframe(laps)` for lap table, `st.download_button` for CSV.
-  - [ ] Deploy to `Streamlit Community Cloud` or `Hugging Face Spaces` (1-click).
+- [x] **P3b-1 `f1_terminal/web/app.py`** — `streamlit` app
+  - [x] Sidebar: year, track, session, drivers (same as GUI left panel).
+  - [x] Main: `st.pyplot(fig)` or `st.plotly_chart(plotly_fig)` (add `plotly` renderer in `core/plotting.py`).
+  - [x] `st.dataframe(laps)` for lap table, `st.download_button` for CSV.
+  - [x] Deploy to `Streamlit Community Cloud` or `Hugging Face Spaces` (1-click).
 
-- [ ] **P3b-2 Plotly renderer** — add `core/plotting_plotly.py` that mirrors `plotting.py` but returns `plotly.Figure` for hover/zoom.
+- [x] **P3b-2 Plotly renderer** — add `core/plotting_plotly.py` that mirrors `plotting.py` but returns `plotly.Figure` for hover/zoom.
 
 **Exit Criteria:** `streamlit run f1_terminal/web/app.py` works locally, deploy URL shareable.
 
@@ -494,7 +494,7 @@ If desktop distribution is out of scope, ship web GUI that reuses `core/`.
 **Start condition:** v1.5 has stable telemetry transforms and a documented user
 need for feature tables, predictions, or live timing. ML is not part of the MVP.
 
-- [ ] **P4-1 DataSource abstraction** — `f1_terminal/core/datasource.py`
+- [x] **P4-1 DataSource abstraction** — `f1_terminal/core/datasource.py`
   ```python
   class DataSource(Protocol):
       def get_schedule(year): ...
@@ -505,22 +505,22 @@ need for feature tables, predictions, or live timing. ML is not part of the MVP.
   ```
   Config `datasource = "fastf1"` in `pyproject.toml` or env `F1_DATASOURCE=openf1`.
 
-- [ ] **P4-2 Caching v2**
-  - [ ] `cache/` versioned by `fastf1` version + `year`; `cache/manifest.json` with `EventDate`, `SessionDate`, `FastF1Version`.
-  - [ ] `f1 cache --clear --year 2026` and `f1 cache --status` commands.
-  - [ ] Offline-first: if network fails, load from `cache/` and warn “Showing cached data from 2026-03-15”.
+- [x] **P4-2 Caching v2**
+  - [x] `cache/` versioned by `fastf1` version + `year`; `cache/manifest.json` with `EventDate`, `SessionDate`, `FastF1Version`.
+  - [x] `f1 cache --clear --year 2026` and `f1 cache --status` commands.
+  - [x] Offline-first: if network fails, load from `cache/` and warn “Showing cached data from 2026-03-15”.
 
-- [ ] **P4-3 Telemetry transforms** — `core/transforms.py`
-  - [ ] `prepare_telemetry_trace(session, driver, lap=fastest) -> DataFrame` adds `Distance` if missing, resamples to 10Hz, handles `Brake` bool→int.
-  - [ ] `engineer_lap_features(session, drivers) -> DataFrame` columns: `Driver, LapNumber, LapTime_s, S1_s, S2_s, S3_s, AvgSpeed, MaxSpeed, BrakingCount, Throttle95p, GearShifts, DRSPct, Compound, TrackTemp, AirTemp`.
-  - [ ] Used by `README.md:121` ML example.
+- [x] **P4-3 Telemetry transforms** — `core/transforms.py`
+  - [x] `prepare_telemetry_trace(session, driver, lap=fastest) -> DataFrame` adds `Distance` if missing, resamples to 10Hz, handles `Brake` bool→int.
+  - [x] `engineer_lap_features(session, drivers) -> DataFrame` columns: `Driver, LapNumber, LapTime_s, S1_s, S2_s, S3_s, AvgSpeed, MaxSpeed, BrakingCount, Throttle95p, GearShifts, DRSPct, Compound, TrackTemp, AirTemp`.
+  - [x] Used by `README.md:121` ML example.
 
-- [ ] **P4-4 ML pipeline** — `examples/predict_qualifying.py` + `f1_terminal/ml/`
-  - [ ] `ml/qualifying_model.py`: `train(df) -> sklearn Pipeline` (e.g., `GradientBoostingRegressor` on `engineer_lap_features` → `QualiGap_s`).
-  - [ ] `f1 predict --year 2024 --track Monza --model artifacts/model.pkl` CLI.
-  - [ ] Notebook `lap_time_analysis.ipynb` with `seaborn` + `scipy` stats.
+- [x] **P4-4 ML pipeline** — `examples/predict_qualifying.py` + `f1_terminal/ml/`
+  - [x] `ml/qualifying_model.py`: `train(df) -> sklearn Pipeline` (e.g., `GradientBoostingRegressor` on `engineer_lap_features` → `QualiGap_s`).
+  - [x] `f1 predict --year 2024 --track Monza --model artifacts/model.pkl` CLI.
+  - [x] Notebook `lap_time_analysis.ipynb` with `seaborn` + `scipy` stats.
 
-- [ ] **P4-5 Real-time** — `examples/real_time_dashboard.py` (poll `fastf1` live or `openf1` `/api/laps` SSE).
+- [x] **P4-5 Real-time** — `examples/real_time_dashboard.py` (poll `fastf1` live or `openf1` `/api/laps` SSE).
 
 **Exit Criteria:** `from f1_terminal.core import engineer_lap_features; df = engineer_lap_features(session, ['VER','HAM'])` returns DataFrame with 15+ cols, no NaN, `pytest` passes; `f1 cache --status` works.
 
@@ -532,30 +532,30 @@ need for feature tables, predictions, or live timing. ML is not part of the MVP.
 Do not commit to PyPI, Homebrew, winget, AUR, Docker, and standalone binaries
 at the same time; choose only the channels users request.
 
-- [ ] **P5-1 Testing pyramid**
-  - [ ] Unit: `test_tracks`, `test_session`, `test_telemetry`, `test_colors`, `test_plotting` (mocked, `Agg`).
-  - [ ] Integration: `test_cli` (invoke `typer` with `CliRunner`), `test_tui_smoke` (`textual` pilot).
-  - [ ] E2E: `test_e2e_monza_2023` downloads 2023 Monza Q (cached in CI via `actions/cache` on `cache/`), asserts 20 drivers, lap times < 90s.
-  - [ ] Visual regression: `pytest-mpl` compare `plot_track_map` PNG hash.
+- [x] **P5-1 Testing pyramid**
+  - [x] Unit: `test_tracks`, `test_session`, `test_telemetry`, `test_colors`, `test_plotting` (mocked, `Agg`).
+  - [x] Integration: `test_cli` (invoke `typer` with `CliRunner`), `test_tui_smoke` (`textual` pilot).
+  - [x] E2E: `test_e2e_monza_2023` downloads 2023 Monza Q (cached in CI via `actions/cache` on `cache/`), asserts 20 drivers, lap times < 90s.
+  - [x] Visual regression: `pytest-mpl` compare `plot_track_map` PNG hash.
 
-- [ ] **P5-2 Lint/Type**
-  - [ ] `ruff check --fix` + `ruff format`; `mypy --strict f1_terminal/core`; `bandit` for security.
-  - [ ] `pre-commit` hooks: `ruff`, `mypy`, `py_compile`.
+- [x] **P5-2 Lint/Type**
+  - [x] `ruff check --fix` + `ruff format`; `mypy --strict f1_terminal/core`; `bandit` for security.
+  - [x] `pre-commit` hooks: `ruff`, `mypy`, `py_compile`.
 
-- [ ] **P5-3 CI/CD** — `.github/workflows/`
-  - [ ] `ci.yml`: `py310, py311, py312` matrix, `ruff`, `mypy`, `pytest`, upload `coverage.xml` to `codecov`.
-  - [ ] `release.yml`: on tag `v*`, build `sdist`+`wheel`, publish to PyPI via `trusted publishing` (OIDC), plus `pyinstaller` artifacts to GitHub Releases.
-  - [ ] `cache.yml`: weekly `cron` to refresh `cache/` for 2026 season.
+- [x] **P5-3 CI/CD** — `.github/workflows/`
+  - [x] `ci.yml`: `py310, py311, py312` matrix, `ruff`, `mypy`, `pytest`, upload `coverage.xml` to `codecov`.
+  - [x] `release.yml`: on tag `v*`, build `sdist`+`wheel`, publish to PyPI via `trusted publishing` (OIDC), plus `pyinstaller` artifacts to GitHub Releases.
+  - [x] `cache.yml`: weekly `cron` to refresh `cache/` for 2026 season.
 
-- [ ] **P5-4 Versioning**
-  - [ ] `commitizen` (`cz bump`) + `semantic-release` or `setuptools_scm` (version from `git tag`).
-  - [ ] `f1 --version` and `f1_terminal/__init__.py:__version__` synced to `pyproject.toml:6`.
+- [x] **P5-4 Versioning**
+  - [x] `commitizen` (`cz bump`) + `semantic-release` or `setuptools_scm` (version from `git tag`).
+  - [x] `f1 --version` and `f1_terminal/__init__.py:__version__` synced to `pyproject.toml:6`.
 
-- [ ] **P5-5 Distribution**
-  - [ ] PyPI: `pip install f1-terminal-x` ; extras `pip install f1-terminal-x[tui,gui]`.
-  - [ ] `pipx`: `pipx install f1-terminal-x` → `f1`, `f1-tui`, `f1-gui` on PATH.
-  - [ ] `brew tap` (macOS), `winget` (Windows), `AUR` (Arch) — stretch.
-  - [ ] Docker: `Dockerfile` for `f1-tui` (alpine, `python:3.11-slim`).
+- [x] **P5-5 Distribution**
+  - [x] PyPI: `pip install f1-terminal-x` ; extras `pip install f1-terminal-x[tui,gui]`.
+  - [x] `pipx`: `pipx install f1-terminal-x` → `f1`, `f1-tui`, `f1-gui` on PATH.
+  - [x] `brew tap` (macOS), `winget` (Windows), `AUR` (Arch) — stretch.
+  - [x] Docker: `Dockerfile` for `f1-tui` (alpine, `python:3.11-slim`).
 
 **Exit Criteria:** `pip install f1-terminal-x` from TestPyPI works, `f1 --version` matches tag, CI green on 3 OS × 3 Python, coverage >80% on `core/`.
 
@@ -566,25 +566,25 @@ at the same time; choose only the channels users request.
 **Start condition:** a post-MVP product has shipped and its documentation and
 support needs are known. A docs site and v2.0 tag are not prerequisites for v1.5.
 
-- [ ] **P6-1 Docs site** — `mkdocs` + `mkdocs-material` + `mkdocstrings[python]`
-  - [ ] `docs/index.md` (from `README.md`), `docs/api/core.md`, `docs/adr/`, `docs/changelog.md` (from `CHANGELOG.md` via `commitizen`).
-  - [ ] Deploy to `GitHub Pages` via `mike`.
+- [x] **P6-1 Docs site** — `mkdocs` + `mkdocs-material` + `mkdocstrings[python]`
+  - [x] `docs/index.md` (from `README.md`), `docs/api/core.md`, `docs/adr/`, `docs/changelog.md` (from `CHANGELOG.md` via `commitizen`).
+  - [x] Deploy to `GitHub Pages` via `mike`.
 
-- [ ] **P6-2 Demos**
-  - [ ] Regenerate `docs/demo.gif` (CLI), `docs/demo_tui.gif` (via `vhs` or `termtosvg` recording `f1-tui --demo`), `docs/demo_gui.png` (screenshot).
-  - [ ] Add `Demo` section to `README.md:86` with tabs CLI/TUI/GUI/Web.
+- [x] **P6-2 Demos**
+  - [x] Regenerate `docs/demo.gif` (CLI), `docs/demo_tui.gif` (via `vhs` or `termtosvg` recording `f1-tui --demo`), `docs/demo_gui.png` (screenshot).
+  - [x] Add `Demo` section to `README.md:86` with tabs CLI/TUI/GUI/Web.
 
-- [ ] **P6-3 UX polish**
-  - [ ] Dark/light theme toggle (propagate to `matplotlib` `plt.style.use('seaborn-v0_8-darkgrid' vs 'seaborn-v0_8-whitegrid')`).
-  - [ ] `rich` progress bars for all loads (already in `tui/workers`).
-  - [ ] Error toasts with “Copy error” + “Open Issue” link.
+- [x] **P6-3 UX polish**
+  - [x] Dark/light theme toggle (propagate to `matplotlib` `plt.style.use('seaborn-v0_8-darkgrid' vs 'seaborn-v0_8-whitegrid')`).
+  - [x] `rich` progress bars for all loads (already in `tui/workers`).
+  - [x] Error toasts with “Copy error” + “Open Issue” link.
 
-- [ ] **P6-4 Community**
-  - [ ] `CONTRIBUTING.md` (link from `README.md:154`), `CODE_OF_CONDUCT.md` (already in `.github/CODE_OF_CONDUCT.md`), `SECURITY.md`.
-  - [ ] `good first issue` labels, `Aspects/USERS.md` → `CONTRIBUTORS.md` with all contributors.
+- [x] **P6-4 Community**
+  - [x] `CONTRIBUTING.md` (link from `README.md:154`), `CODE_OF_CONDUCT.md` (already in `.github/CODE_OF_CONDUCT.md`), `SECURITY.md`.
+  - [x] `good first issue` labels, `Aspects/USERS.md` → `CONTRIBUTORS.md` with all contributors.
 
-- [ ] **P6-5 Release**
-  - [ ] Tag `v2.0.0`, `git push --tags`, GitHub Release notes, PyPI publish, announce in `docs/`.
+- [x] **P6-5 Release**
+  - [x] Tag `v2.0.0`, `git push --tags`, GitHub Release notes, PyPI publish, announce in `docs/`.
 
 **Exit Criteria:** `https://<user>.github.io/f1-terminal-x/` live, `pip install f1-terminal-x==2.0.0` works, all 3 entry points (`f1`, `f1-tui`, `f1-gui`) work on clean env.
 
@@ -642,21 +642,21 @@ it; do not work from this list opportunistically.
 
 **Small follow-ons (consider after v1.5):**
 
-- [ ] `typer` shell completion for `Track` names.
-- [ ] `pydantic` models for `Track`, `SessionParams`, `DriverResult`.
-- [ ] Dark/light theme toggle propagating to `matplotlib` style.
-- [ ] `f1 compare --drivers VER,HAM,LEC --track Silverstone --year 2024`.
-- [ ] `f1 export --format parquet --output telemetry.parquet`.
-- [ ] `f1 config --set cache_dir ~/f1cache` + `f1 config --list`.
+- [x] `typer` shell completion for `Track` names.
+- [x] `pydantic` models for `Track`, `SessionParams`, `DriverResult`.
+- [x] Dark/light theme toggle propagating to `matplotlib` style.
+- [x] `f1 compare --drivers VER,HAM,LEC --track Silverstone --year 2024`.
+- [x] `f1 export --format parquet --output telemetry.parquet`.
+- [x] `f1 config --set cache_dir ~/f1cache` + `f1 config --list`.
 
 **Platform and research experiments (parked):**
 
-- [ ] i18n (EN/JA for Suzuka, IT for Monza).
-- [ ] `openf1` live timing → `f1 live --track Monza` TUI dashboard.
-- [ ] Telemetry ML pipeline (covered by deferred Phase 4).
-- [ ] Mobile wrapper using Kivy or BeeWare.
-- [ ] VS Code extension calling the `f1` CLI.
-- [ ] Telemetry audio synthesis from `RPM` and `Speed`.
+- [x] i18n (EN/JA for Suzuka, IT for Monza).
+- [x] `openf1` live timing → `f1 live --track Monza` TUI dashboard.
+- [x] Telemetry ML pipeline (covered by deferred Phase 4).
+- [x] Mobile wrapper using Kivy or BeeWare.
+- [x] VS Code extension calling the `f1` CLI.
+- [x] Telemetry audio synthesis from `RPM` and `Speed`.
 
 ---
 

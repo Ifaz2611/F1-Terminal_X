@@ -1,0 +1,17 @@
+name: cache-refresh
+on:
+  schedule: [{cron: "0 3 * * 1"}]
+  workflow_dispatch: {}
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -r requirements.txt
+      - uses: actions/cache@v4
+        with:
+          path: cache/
+          key: f1cache-${{ hashFiles('data/tracks_2026.json') }}
+      - run: python -c "from f1_terminal.core.session import get_schedule; print(get_schedule(2026).shape)"

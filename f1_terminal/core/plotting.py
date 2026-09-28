@@ -70,7 +70,7 @@ def plot_track_map(
             from matplotlib.collections import LineCollection
 
             segments = np.concatenate([points[:-1], points[1:]], axis=1)
-            lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(vmin, vmax))
+            lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(vmin, vmax))  # type: ignore[arg-type]
             lc.set_array(speeds)
             lc.set_linewidth(3.0)
             ax.add_collection(lc)
@@ -445,14 +445,14 @@ def plot_race_pace(
             import matplotlib.pyplot as plt
 
             cmap = plt.get_cmap("tab20")
-            colors = {drv: cmap(i / max(len(drivers), 1)) for i, drv in enumerate(drivers)}
+            colors = {drv: cmap(i / max(len(drivers), 1)) for i, drv in enumerate(drivers)}  # type: ignore[misc]
             # Convert RGBA to hex if needed
             import matplotlib.colors as mcolors
 
             for k, v in list(colors.items()):
                 if not isinstance(v, str):
                     try:
-                        colors[k] = mcolors.to_hex(v)
+                        colors[k] = mcolors.to_hex(v)  # type: ignore[assignment]
                     except Exception:
                         pass
         except Exception:

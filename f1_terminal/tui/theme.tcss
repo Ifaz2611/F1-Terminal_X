@@ -1,0 +1,53 @@
+/* F1 Terminal X — Textual theme (P2-12). Dark/light + team colors. */
+Screen {
+    background: #0c0f14;
+    color: #e8ecf1;
+}
+
+Header {
+    background: #161b22;
+    color: #e8ecf1;
+}
+
+Footer {
+    background: #161b22;
+    color: #9aa4b2;
+}
+
+Sidebar {
+    background: #11161d;
+    border-right: solid #2a3340;
+    width: 32;
+}
+
+DataTable {
+    background: #0c0f14;
+}
+
+TabbedContent {
+    background: #0c0f14;
+}
+
+TabPane {
+    background: #0c0f14;
+    padding: 1 2;
+}
+
+LoadingIndicator {
+    color: #e10600;
+}
+
+ProgressBar {
+    background: #2a3340;
+}
+
+Toast {
+    background: #1c2330;
+    border: solid #e10600;
+}
+
+/* Team color chips */
+.team-red { color: #e10600; }
+.team-blue { color: #0600ef; }
+.team-green { color: #00d2be; }
+.team-yellow { color: #ffd700; }
