@@ -20,6 +20,7 @@ track/speed summary, saves PNG, works offline with --demo, never blocks UI.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 from typing import Any, Optional
@@ -34,6 +35,17 @@ Tabs: Track Map, Speed Trace, Throttle/Brake, Sectors, Race Pace, Summary(All)
 Data: FastF1 (cached) or --demo offline fixture (data/telemetry_sample.csv).
 See Aspects/fastf1_reference.md / docs/reference for FastF1 notes.
 """
+
+
+def make_widget_id(prefix: str, value: str) -> str:
+    """Build a valid Textual widget id from an arbitrary label.
+
+    Textual ids may contain only letters, numbers, underscores, and
+    hyphens, so slugify anything else (spaces, slashes, parens, ...).
+    e.g. make_widget_id("tab", "Track Map") -> "tab-Track-Map".
+    """
+    slug = re.sub(r"[^A-Za-z0-9_-]+", "-", value).strip("-_")
+    return f"{prefix}-{slug}"
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
@@ -193,8 +205,8 @@ class F1TerminalApp:
                     with Vertical(id="main"):
                         with TabbedContent():
                             for tab in analysis_model.TABS:
-                                with TabPane(tab, id=f"tab-{tab}"):
-                                    yield Static("Loading…", id=f"body-{tab}")
+                                with TabPane(tab, id=make_widget_id("tab", tab)):
+                                    yield Static("Loading…", id=make_widget_id("body", tab))
                 yield LoadingIndicator(id="loader")
                 yield Footer()
 
@@ -217,7 +229,10 @@ class F1TerminalApp:
                     import asyncio
 
                     res = await asyncio.to_thread(load_session_sync, outer.year, outer.track, outer.session_code)
-                self.call_from_thread(self._on_loaded, res)
+                # _do_load runs as an async worker on the app's event loop,
+                # so we are already on the app thread — update directly.
+                # (call_from_thread would raise RuntimeError here.)
+                self._on_loaded(res)
 
             def _on_loaded(self, res) -> None:
                 loader = self.query_one("#loader", LoadingIndicator)
@@ -226,7 +241,7 @@ class F1TerminalApp:
                     self.notify(friendly_error_message(outer.year, outer.track, outer.session_code, res.error), severity="error")
                     for tab in ["Track Map", "Speed Trace", "Sectors"]:
                         try:
-                            self.query_one(f"#body-{tab}", Static).update(f"Error: {res.error}\nPress r to retry, or restart with --demo.")
+                            self.query_one(f"#{make_widget_id('body', tab)}", Static).update(f"Error: {res.error}\nPress r to retry, or restart with --demo.")
                         except Exception:
                             pass
                     return
@@ -240,12 +255,12 @@ class F1TerminalApp:
                     from f1_terminal.core.telemetry import get_driver_telemetry
 
                     _f, tel = get_driver_telemetry(w, "VER" if "VER" in w.drivers else w.drivers[0])
-                    self.query_one("#body-Track Map", Static).update(track_map.render_ascii(tel, outer.track))
-                    self.query_one("#body-Speed Trace", Static).update(speed_trace.render_ascii(tel, "VER"))
+                    self.query_one(f"#{make_widget_id('body', 'Track Map')}", Static).update(track_map.render_ascii(tel, outer.track))
+                    self.query_one(f"#{make_widget_id('body', 'Speed Trace')}", Static).update(speed_trace.render_ascii(tel, "VER"))
                 except Exception as e:
-                    self.query_one("#body-Track Map", Static).update(f"No telemetry: {e}")
+                    self.query_one(f"#{make_widget_id('body', 'Track Map')}", Static).update(f"No telemetry: {e}")
                 try:
-                    self.query_one("#body-Summary(All)", Static).update(telemetry_table.render_ascii(w))
+                    self.query_one(f"#{make_widget_id('body', 'All')}", Static).update(telemetry_table.render_ascii(w))
                 except Exception:
                     pass
                 try:
@@ -260,7 +275,7 @@ class F1TerminalApp:
                             rows.append({"Driver": drv, "Sector1Time": f.get("Sector1Time"), "Sector2Time": f.get("Sector2Time"), "Sector3Time": f.get("Sector3Time")})
                         except Exception:
                             continue
-                    self.query_one("#body-Sectors", Static).update(sector_bars.render_ascii(pd.DataFrame(rows)))
+                    self.query_one(f"#{make_widget_id('body', 'Sectors')}", Static).update(sector_bars.render_ascii(pd.DataFrame(rows)))
                 except Exception as e:
                     logger.debug("sectors render failed: %s", e)
 
