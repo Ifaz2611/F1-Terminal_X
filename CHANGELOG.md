@@ -1,6 +1,13 @@
 # Changelog
 
 ## 1.5.0 — MVP
-- Phase 0/1/2 exit criteria met: core + CLI + TUI with `--demo`/`--ascii`.
-- `f1`, `f1-tui`, legacy entry points work in clean env; mocked tests pass offline.
-- Post-MVP options (GUI/web/ML/distribution) implemented as optional layers behind usage review.
+
+- Completed the v1.5 MVP scope with shared telemetry/core logic, CLI entry points, and terminal UI support.
+- Added offline-ready sample fixtures so local analysis and tests do not require a live FastF1 session.
+- Cleaned up the project structure, documentation, and runtime entry points.
+- Kept optional GUI, web, and ML work separated as follow-on layers behind a usage review.
+
+## Earlier notes
+
+- Bug-fix and documentation cleanup work was consolidated within the project’s `docs/` directory.
+- Legacy compatibility wrappers remain available while the main package continues to evolve around `f1_terminal`.

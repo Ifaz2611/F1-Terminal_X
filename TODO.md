@@ -1,262 +1,60 @@
-# F1 Terminal X — Master Build Roadmap
+# F1 Terminal X — roadmap and project status
 
-> **Vision:** A focused open-source F1 terminal toolkit — from `pip install` to pit-wall insights in <30s. CLI for scripting and TUI for terminal users first; desktop, web, and ML work remain optional follow-on products built on the same core.
->
-> **Status:** Bug-fix pass completed 2026-09-25 (`docs/BUGFIX_REPORT.md:1`). This roadmap now separates the committed v1.5 MVP from post-MVP experiments so the project can ship before the larger platform scope is approved.
->
-> **How to use:** Check off boxes per PR. Each Phase is merge-gated by its **Exit Criteria**. Execute **Phase 0 → Phase 1 → Phase 2**, then stop for a usage review. Do not start a post-MVP phase without an explicit scope decision.
+This project continues to move from a utility-focused codebase toward a cleaner, terminal-first telemetry toolkit. The core implementation is already in place and the repository documentation has been updated to reflect the shipped MVP state.
 
----
+## Project status
 
-## Table of Contents
-- [Stack Decision Matrix](#stack-decision-matrix)
-- [Target Architecture & File Tree](#target-architecture--file-tree)
-- [Phase 0 — Hygiene & Foundation Debt](#phase-0--hygiene--foundation-debt-12-weeks)
-- [Phase 1 — Core Engine Refactor](#phase-1--core-engine-refactor-23-weeks)
-- [Phase 2 — TUI (Textual)](#phase-2--tui-textual--rich--plotext--35-weeks)
-- [MVP Release Gate — v1.5](#mvp-release-gate--v15)
-- [Post-MVP Options](#post-mvp-options)
-- [Phase 3 — GUI (Desktop, deferred)](#phase-3--gui-desktop-deferred)
-- [Phase 3b — Web Alternative (Streamlit/Dash, deferred)](#phase-3b--web-alternative-streamlitdash-deferred)
-- [Phase 4 — Data & Intelligence (deferred)](#phase-4--data--intelligence-deferred)
-- [Phase 5 — Quality, CI/CD, Distribution (deferred)](#phase-5--quality-cicd-distribution-deferred)
-- [Phase 6 — Polish & Release v2.0 (deferred)](#phase-6--polish--release-v20-deferred)
-- [Timeline & Effort Summary](#timeline--effort-summary)
-- [Testing Strategy Matrix](#testing-strategy-matrix)
-- [Nice-to-Have Backlog & Stretch Goals](#nice-to-have-backlog--stretch-goals)
-- [Appendix](#appendix)
+- Status: v1.5 MVP complete
+- Goal: ship a reliable core for telemetry access, lap analysis, CLI workflows, and offline-ready examples
+- Scope: CLI + TUI + core library are active; GUI / web / ML remain optional follow-on work
 
----
+## Contents
 
-## Stack Decision Matrix
+- [Current priorities](#current-priorities)
+- [MVP completion summary](#mvp-completion-summary)
+- [Future work](#future-work)
+- [Working conventions](#working-conventions)
 
-| Layer | Option A (Recommended) | Option B | Option C | Choice Rationale |
-|-------|------------------------|----------|----------|------------------|
-| **Language** | Python 3.10+ | - | - | FastF1 requires it |
-| **CLI** | `typer` + `rich` | `argparse` + `questionary` | `click` | Typer gives auto `--help`, shell completion, type hints; keep questionary for interactive fallback |
-| **TUI** | `textual>=0.60` + `rich` + `plotext` (ASCII fallback) | `blessed` + `urwid` | `prompt_toolkit` | Textual has async workers, DataTable, Tabs, Image widget via Sixel/Kitty |
-| **GUI** | `PyQt6` + `matplotlib` `FigureCanvasQTAgg` | `customtkinter` + `FigureCanvasTkAgg` | `DearPyGui` | PyQt6 is heavier but gives QThread, QGraphicsView, native menus; customtkinter ships faster — pick one, document in `docs/adr/001-gui-stack.md` |
-| **Web (optional)** | `Streamlit` (fastest) | `Dash` + `plotly` | `FastAPI` + `React` | Streamlit reuses `core/plotting.py` with `plotly` renderer |
-| **Plotting** | `matplotlib` (core) + `plotly` (web export) + `seaborn` style | `pyqtgraph` | - | Matplotlib is FastF1 native; plotly for hover/zoom |
-| **Data** | `fastf1` (primary) + `openf1` API (future) via `DataSource` interface | - | - | Abstract source so 2026 season gaps can be filled |
-| **Config** | `pydantic` + `pydantic-settings` + `pyproject.toml` | `dataclass` | `hydra` | Validation for `Track`, `SessionParams` |
-| **Packaging** | `pyproject.toml` (`setuptools`) + `pipx` + `pyinstaller` | `poetry` | `hatch` | Already migrated to pyproject |
-| **CI** | `GitHub Actions` + `ruff` + `pytest` + `mypy` | - | - | Free, fast |
+## Current priorities
 
-> **Decision to record:** Create `docs/adr/002-tui-stack.md` before Phase 2. Do not choose a desktop stack until the MVP usage review. `docs/adr/001-gui-stack.md` is intentionally deferred.
+1. Keep the `f1_terminal` core as the canonical implementation layer.
+2. Preserve backward compatibility where legacy entry points still matter.
+3. Keep documentation aligned with real project behavior.
+4. Treat optional GUI/web/ML layers as separate product decisions, not core requirements.
 
-## Scope guardrails
+## MVP completion summary
 
-The committed target is **v1.5 MVP = Phase 0 + Phase 1 + Phase 2**. It delivers a
-tested shared core, a scriptable CLI, and a usable Textual TUI. It does not
-commit the project to a desktop GUI, web deployment, ML pipeline, or multi-platform
-distribution.
+The v1.5 scope includes:
 
-- Keep one primary front end in active development at a time.
-- Prefer a small complete feature over a new platform.
-- Treat live network calls, image protocols, and GUI behavior as optional/manual
-  unless they are required by an MVP exit criterion.
-- Re-evaluate the next phase using actual usage, contributor capacity, and
-  maintenance cost after v1.5 ships.
+- shared telemetry and session-loading APIs
+- offline sample data and mock-friendly tests
+- CLI automation through `f1`
+- Textual TUI demo support via `f1-tui --demo`
+- a single project-facing cache directory and settings model
+- clearer documentation and contributor workflow
 
----
+## Future work
 
-## Target Architecture & File Tree
+These items are intentionally optional and should only proceed after usage review and explicit scope approval:
 
-### Current (post-fix) — `f1_terminal/tracks.py:1`, `F1_Main_py/tracks.py:1`, `F1_Main_py/schedule_driver.py:1`, `pyproject.toml:1`
+- desktop GUI layer
+- Streamlit or web dashboard layer
+- ML and model-training extension
+- broader distribution packaging and release automation
 
-### Target architecture after the MVP
+## Working conventions
 
-```
-F1-Terminal_X/
-├── pyproject.toml                    # single source of truth, [project.scripts] f1-*, f1-tui, f1-gui
-├── requirements.txt / requirements-dev.txt
-├── .github/workflows/ci.yml
-├── docs/
-│   ├── adr/                          # Architecture Decision Records
-│   ├── BUGFIX_REPORT.md
-│   └── demo.gif / demo_tui.gif / demo_gui.png
-├── cache/                            # unified FastF1 cache (gitignored)
-├── data/
-│   ├── telemetry_sample.csv          # curated lap for offline/demo + tests
-│   └── tracks_2026.json              # generated from f1_terminal/tracks.py
-├── examples/
-│   ├── telemetry_overview.ipynb
-│   ├── lap_time_analysis.ipynb
-│   ├── predict_qualifying.py
-│   └── real_time_dashboard.py
-├── f1_terminal/                      # MAIN PACKAGE (all new code here; F1_Main_py becomes legacy shim)
-│   ├── __init__.py
-│   ├── config.py                     # pydantic settings, YEAR_RANGE, CACHE_DIR, FIGURE_DPI
-│   ├── tracks.py                     # canonical DB (done)
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── session.py                # load_session(), get_schedule(), SessionWrapper
-│   │   ├── telemetry.py              # get_fastest_lap(), get_telemetry(), add_distance()
-│   │   ├── colors.py                 # get_team_color() -> hex
-│   │   ├── plotting.py               # pure funcs: plot_track_map(ax,*), plot_speed(ax,*), plot_sectors(ax,*), plot_pace(ax,*)
-│   │   ├── transforms.py             # prepare_telemetry_trace(), engineer_lap_features()
-│   │   ├── io.py                     # load_session_data() for CSV/Parquet + FastF1
-│   │   └── errors.py                 # F1DataError, SessionNotHeldError, CacheError
-│   ├── cli/
-│   │   ├── __init__.py
-│   │   ├── main.py                   # typer app: f1 --year --track --session --driver --analysis --save --interactive
-│   │   └── interactive.py            # questionary fallback wrappers
-│   ├── tui/
-│   │   ├── __init__.py
-│   │   ├── app.py                    # F1TerminalApp (Textual App)
-│   │   ├── screens/
-│   │   │   ├── track_select.py
-│   │   │   ├── session_select.py
-│   │   │   ├── driver_select.py
-│   │   │   └── analysis.py
-│   │   ├── widgets/
-│   │   │   ├── track_map.py
-│   │   │   ├── speed_trace.py
-│   │   │   ├── sector_bars.py
-│   │   │   └── telemetry_table.py
-│   │   ├── workers/
-│   │   │   └── session_loader.py     # async fastf1 loader with Progress
-│   │   └── theme.tcss                # Textual CSS
-│   ├── gui/
-│   │   ├── __init__.py
-│   │   ├── app.py                    # QApplication / Tk root
-│   │   ├── main_window.py            # left controls + center canvas + right table
-│   │   ├── canvas.py                 # FigureCanvas wrapper
-│   │   ├── workers.py                # QThread / threading for session load
-│   │   └── dialogs.py                # save/export, settings
-│   └── web/                          # optional Streamlit/Dash
-│       └── app.py
-├── F1_Main_py/                       # LEGACY — becomes shim re-exporting f1_terminal.core
-│   ├── __init__.py
-│   ├── tracks.py                     # re-exports f1_terminal.tracks
-│   ├── f1.py                         # wrapper -> f1_terminal.core
-│   ├── driver.py
-│   └── schedule_driver.py
-├── tests/
-│   ├── test_tracks.py
-│   ├── test_session.py
-│   ├── test_telemetry.py
-│   ├── test_plotting.py
-│   ├── test_cli.py
-│   └── test_tui_smoke.py
-└── TODO.md  (this file)
-```
+- Prefer `f1_terminal/core`, `f1_terminal/cli`, and `f1_terminal/tui` for new logic.
+- Use `F1_Main_py/` only as a compatibility shim.
+- Keep examples and docs executable and realistic.
+- Validate with the existing test and lint pipeline before merge.
 
-**Rule:** All new logic goes in `f1_terminal/core/`, `cli/`, `tui/`, `gui/`. `F1_Main_py/` stays for backward compat only.
+## Recommended next steps
 
----
-
-## Phase 0 — Hygiene & Foundation Debt (1-2 weeks) — **GATE for all else**
-
-**Goal:** No drift, no broken imports, CI green.
-
-- [x] **P0-1 README ↔ Code drift** — `README.md:61` references `f1_terminal.io:1` (`load_session_data`), `f1_terminal.transform:111` (`prepare_telemetry_trace`), `f1_terminal.features:121` (`engineer_lap_features`) which don't exist.
-  - [x] Create stubs: `f1_terminal/core/io.py` (`load_session_data(year,track,session)` handles CSV or FastF1), `transforms.py` (`prepare_telemetry_trace(session, driver, lap)`), `features.py` (`engineer_lap_features(session, drivers)` returns DataFrame with `CornerSpeed`, `BrakingPoint`, etc.)
-  - [x] Or rewrite README examples to use existing `fastf1.get_session` directly — pick one, don't leave broken imports.
-  - [x] Add `data/telemetry_sample.csv` (1 lap, columns `X,Y,Speed,Throttle,Brake,nGear,DRS,Distance`) + `data/README.md`.
-  - [x] Populate `examples/` (4 files from `README.md:79` table) or remove table; ensure `docs/demo.gif` exists or remove badge.
-  - [x] Fix `Project Structure` block `README.md:132` — it still shows `formula1_test/`, `Aspects/` (should be `f1_terminal/`, `F1_Main_py/`, `docs/`).
-
-- [x] **P0-2 Tests bootstrap** — `tests/` + `pytest` + fixtures with mocked `fastf1` (no network in CI)
-  - [x] `tests/test_tracks.py`: 22 entries, `get_track(1).fastf1_name != get_track(14).fastf1_name` despite both `country=="Spain"`, `get_track(99)` raises.
-  - [x] `tests/test_cache_setup.py`: import `f1_terminal.f1_advanced_visualizer` does not create nested `f1_cache/` outside `cache/`.
-  - [x] `tests/test_visualizer_smoke.py`: mock `session.laps` DataFrame, call `TrackVisualizer(...).plot_*` with `matplotlib.use('Agg')` and assert `Figure` returned (no `plt.show()`).
-  - [x] `tests/conftest.py`: `mock_session` fixture.
-
-- [x] **P0-3 CI** — `.github/workflows/ci.yml`
-  ```yaml
-  on: [push, pull_request]
-  jobs:
-    ci:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
-          with: {python-version: '3.11'}
-        - run: pip install -r requirements.txt && pip install pytest ruff mypy
-        - run: python -m py_compile F1_Main_py/f1.py F1_Main_py/driver.py f1_terminal/*.py
-        - run: ruff check .
-        - run: mypy f1_terminal/core --ignore-missing-imports
-        - run: pytest -q
-  ```
-
-- [x] **P0-4 Logging** — replace `print()` with `logging`
-  - [x] `f1_terminal/config.py:1` → `LOG_LEVEL`, `LOG_FORMAT`; use `rich.logging.RichHandler` when `rich` installed.
-  - [x] Add `--verbose` / `-v` flag to all CLIs; `logger.info("Loading %s %s ...", year, track)` instead of `print`.
-
-- [x] **P0-5 Config centralization** — `f1_terminal/config.py`
-  ```python
-  from pydantic_settings import BaseSettings
-  from pathlib import Path
-  class Settings(BaseSettings):
-      cache_dir: Path = Path("cache").resolve()
-      figure_dpi: int = 150
-      min_year: int = 2018
-      max_year: int = 2030
-      default_season: int = 2026
-  settings = Settings()
-  ```
-  Replace hardcoded `2018,2030,2026,150` across `F1_Main_py/f1.py:43`, `driver.py`, `f1_advanced_visualizer.py:31`.
-
-- [x] **P0-6 Git hygiene**
-  - [x] `git rm -r --cached F1_Main_py/__pycache__ f1_terminal/__pycache__` ; ensure `.gitignore:11` covers `__pycache__/`, `.pytest_cache/`, `*.egg-info/`, `dist/`.
-  - [x] Rename `Aspects/` → `docs/reference/` (or keep but add `docs/reference/README.md` explaining it); update `Aspects/fastf1_reference.md:1` links.
-  - [x] Remove `Schedule&Driver.py` shim in v2.0 — add `TODO` comment with removal version.
-
-- [x] **P0-7 Type hints & docstrings** — `ruff` + `mypy` pass on `f1_terminal/core/`.
-
-**Exit Criteria:** `pytest` green, `ruff` clean, `README` examples run without ImportError, `cache/` is single dir, CI badge green. **Met.**
-
----
-
-## Phase 1 — Core Engine Refactor (2-3 weeks) — **GATE for MVP**
-
-**Goal:** Decouple **data/plot** from **I/O** so the CLI and TUI share one engine. Pure functions return `Figure`/`DataFrame`, never call `input()` or `plt.show()`.
-
-### 1.1 Create `f1_terminal/core/`
-
-- [x] **P1-1 `core/errors.py`**
-  ```python
-  class F1DataError(Exception): ...
-  class SessionNotHeldError(F1DataError): ...
-  class DriverNotFoundError(F1DataError): ...
-  class TelemetryNotAvailableError(F1DataError): ...
-  ```
-  Uniform error UX, exit codes `0=ok, 1=data error, 2=usage error`.
-
-- [x] **P1-2 `core/session.py`**
-  - [x] `get_schedule(year: int) -> DataFrame` (cached, handles 2026 incomplete schedule)
-  - [x] `load_session(year, track: str|Track, session_code: str, *, telemetry=True) -> SessionWrapper` with retry (3x, backoff), `DataNotLoadedError` → `SessionNotHeldError` with friendly msg.
-  - [x] `SessionWrapper` dataclass: `session`, `laps`, `drivers`, `year`, `track`, `session_code`; method `get_driver_laps(code)` (handles `pick_drivers`/`pick_driver` fallback — extract from `F1_Main_py/driver.py:148`).
-  - [x] Offline fallback: if `cache/` has data, load from cache even without network.
-
-- [x] **P1-3 `core/telemetry.py`**
-  - [x] `get_fastest_lap(session, driver_code) -> Series` + `get_telemetry(fastest_lap) -> DataFrame` (wraps `fastest_lap.get_telemetry()` + `add_distance()`).
-  - [x] `get_driver_telemetry(session, driver_code) -> tuple[Series, DataFrame]` (combines above, raises `TelemetryNotAvailableError`).
-  - [x] Unit tests with mocked laps.
-
-- [x] **P1-4 `core/colors.py`**
-  - [x] `get_team_color(session, driver_code, fallback_cmap, idx, total) -> str` (hex) — consolidate from `f1_advanced_visualizer.py:101` and `f1_qualifying.py:108`.
-
-- [x] **P1-5 `core/plotting.py`** — **pure functions**, `ax` injected, return `Figure`
-  - [x] `plot_track_map(ax, telemetry, color, cmap='viridis') -> None` (LineCollection + colorbar)
-  - [x] `plot_speed_trace(ax, telemetry, color, show_drs=True, show_gear_shifts=True)`
-  - [x] `plot_throttle_brake(ax, telemetry)`
-  - [x] `plot_gear_map(ax, telemetry)`
-  - [x] `plot_sector_bars(ax, sector_df)` (from `f1_advanced_visualizer.py:337`)
-  - [x] `plot_race_pace(ax, laps, drivers, colors)`
-  - [x] `plot_tire_strategy(ax, laps, drivers)` (from `F1_Main_py/driver.py:114`)
-  - [x] All functions handle `NaN`, empty DataFrames gracefully (return early, log warning).
-
-- [x] **P1-6 `core/io.py` + `core/transforms.py`**
-  - [x] `io.load_session_data(year, track, session, source='fastf1'|'csv'|'parquet', path=None) -> DataFrame` (satisfies `README.md:61`).
-  - [x] `transforms.prepare_telemetry_trace(session, driver, lap) -> DataFrame` (satisfies `README.md:111` plotly example).
-  - [x] `transforms.engineer_lap_features(session, drivers) -> DataFrame` (corner speeds, braking points — stub + TODO for ML).
-
-- [x] **P1-7 `core/__init__.py` re-exports** for `from f1_terminal.core import load_session, get_telemetry, TRACKS`.
-
-### 1.2 Refactor Scripts to Use Core
+- keep the public docs written in terms of current commands and APIs
+- expand examples with real session walkthroughs when network access is available
+- add a small ADR for any major front-end or deployment decision
+- revisit GUI/web/ML only after the CLI + TUI core has seen real user feedback
 
 - [x] **P1-8 Refactor each entry point** to thin CLI wrappers:
   ```python
