@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt && pip install pytest ruff mypy
       - name: Compile check
-        run: python -m py_compile F1_Main_py/f1.py F1_Main_py/driver.py f1_terminal/__init__.py f1_terminal/config.py f1_terminal/core/*.py f1_terminal/cli/*.py f1_terminal/tui/app.py f1_terminal/gui/app.py
+        run: python -m compileall -q F1_Main_py/f1.py F1_Main_py/driver.py f1_terminal/__init__.py f1_terminal/config.py f1_terminal/core f1_terminal/cli f1_terminal/tui/app.py f1_terminal/gui/app.py
       - name: Ruff
         run: ruff check .
       - name: Mypy
